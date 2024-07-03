@@ -31,3 +31,45 @@ Apart from that, we will also differentiate the role of identifiers being used i
 
 As you may see in the function declaration, currently parameter names and argument labels are the same identifier, making it impossible to use different, separate identifiers for these two different roles. The second part of the work, namely, **argument labels** is focused on introducing and analyzing the implications of possibility to have separate identifiers for argument labels and parameter names.
 
+## Common Reasons
+
+The two ideas described naturally come together, as they both are related to the introduction of new syntax to the function declaration, more specifically to the declaration of arguments. Therefore it is quite natural, that they have some reasons to implement applicable to both argument labels and enforced named form.
+
+### Self-documenting code
+
+As stated in the abstract, self explanatory code, which is easy to read and understand is important for the development process. 
+
+To get a better understanding of it, let's move back to the example given in the previous section, the `drawLine` function:
+
+```kotlin
+fun drawLine(start: Point, end: Point, width: Int) {
+    drawer.moveTo(start)
+    drawer.setWidth(width)
+    drawer.drawTo(end)
+}
+```
+
+One of the simplest ways to call it will be the following:
+
+```kotlin
+drawLine((500, 66), (200, 39), 30)
+```
+
+Here, with positional argument form the call is easy to write, but the meaning of the arguments is quite hard to understand without seeing the declaration of the function before your eyes. However if the developer decides to enforce a named form of arguments, then the call turns into:
+
+```kotlin
+drawLine(start=(500, 66), end=(200, 39), width=30)
+```
+
+Which is now more readable and one reading this code does not need to go to the function declaration. But what if we want to have slightly different argument labels, used in the call place? For example, _so that the call can be read as a natural language sentence_?
+
+```kotlin
+drawLine(from=(500, 66), to=(200, 39), withThickness=30)
+```
+
+All in all, both using the named form (and, therefore, enforcing it in some places) and using argument labels lead to improved code readability and reduced ambiguity, which results in a decreased amount of errors.
+
+## In general about Swift
+
+...It is worth noticing, that this feature is present in all languages that support ENF, and vice versa.
+
