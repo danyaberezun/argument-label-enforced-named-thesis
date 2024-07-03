@@ -1,1 +1,225 @@
-WIP: Placeholder 
+# Argument Labels
+
+## Description
+
+One possible simple example of it (taken from the mentioned issues):
+
+```kotlin
+fun <E> List<E>.index([of] element: E): Int? {
+    // Use the `element` variable to find its index in the list
+}
+
+someList.index(of = someElement) // Notice how this reads like a normal English phrase: index of someElement
+
+fun distance([between] a: Int, [and] b: Int): Int {
+    return abs(a - b)
+}
+
+val d = distance(between = 6, and = 9) // And again, the distance between 6 and 9, completely readable
+```
+
+
+### Discussion history
+
+Firstly discussed in the same issue as the previous idea, this one has its own issue: [KT-34895](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label). The idea is to allow developers to specify two names for an argument in their functions: external (argument label) and internal (parameter name). The external name acts as a use-site name, the one that is seen during the function call using the named form of arguments, and the internal acts as a parameter name, which is used in the body of a function. The main reason behind this is increased code readability and strive to make code more self-documenting.
+
+
+### Possible benefits
+
+#### Different meanings for arguments inside and outside
+
+Sometimes the information that a developer needs to know about an argument differs from information that an end user needs to know. Not necessary that some information should be forgotten, but sometimes different sides need to have accents on different parts of the same arguments. Examples of this situation can be seen in the following examples, where it is quite difficult to come up with a meaningful name, that will have
+
+```kotlin
+// Suppose we have the following declaration using argument labels feature
+fun <E> List<E>.max([by] comparator: Comparator<E>, [or] zero: E) {
+        E result = zero
+        for (item in this) {
+                if (comparator.compare(result, item) > 0) {
+                        result = item
+                }
+        }
+        return result
+}
+
+listOf(1, 2, 3, 4).max(by=naturalOrder, or=0) // pretty understandable
+// VS
+// Choose names `by` and `or` for function body
+fun <E> List<E>.max(by: Comparator<E>, or: E) {
+        E result = or // Ouch!
+        for (item in this) {
+                if (**by.compare**(result, item) > 0) { // Ouch!
+                        result = item
+                }
+        }
+        return result
+}
+// or choose names `comparator` and `zero` for labels
+listOf(1, 2, 3, 4).max(**comparator**=naturalOrder, **zero**=0) // meh...
+```
+
+Another, a little bit more complicated and closer to reality example:
+
+```kotlin
+// Suppose we have a public API for requests
+// And we do not use the argument labels feature
+interface Repo {
+    fun startRequest(query: String,
+                     successAction: () -> Unit,
+                     failureAction: (Throwable) -> Unit,
+                     **observeOn: Scheduler**) /* <-- Okay so far... */
+}
+
+// From user's side everything is okay:
+val repo = Repo()
+repo.startRequest(
+        query = "Foo",
+        successAction = { /* ... */ },
+        failureAction = { throwable -> /* ... */ },
+        **observeOn = Schedulers.computation()** /* <-- Very clear what this does */
+)
+// But from the developer side things will turn a little bit unobvious
+internal class DefaultRepo : Repo {
+    override fun startRequest(query: String,
+                              successAction: () -> Unit,
+                              failureAction: (Throwable) -> Unit,
+                              observeOn: Scheduler) {
+
+        val disposable = retrofitApi.fooRequest(query = query)
+                **.observeOn(observeOn)** /* who is `observeOn`? (in this particular case we can say that from the type name, but this is not always the case) */
+                .doOnSuccess(successAction)
+                .doOnError(failureAction)
+                .subscribe()
+    }
+}
+// Inverse situation: choose `scheduler` as a name for the argument
+val repo = Repo()
+repo.startRequest(
+        query = "Foo",
+        successAction = { /* ... */ },
+        failureAction = { throwable -> /* ... */ },
+        **scheduler = Schedulers.computation()** /* what is this scheduler used for? */
+)
+```
+
+There is a problem related to the implementation of generic interfaces for more specific cases: usually, it would be more meaningful to use different names, as can be seen in the following example from the related issue: [KT-59531](https://youtrack.jetbrains.com/issue/KT-59531/Add-a-way-to-make-parameter-names-of-interface-functions-non-stable)
+
+```kotlin
+interface Consumer<T> {
+    fun consume(input: T)
+}
+
+class MessageConsumer : Consumer<Message> {
+    override fun consume(message: Message) = …
+}
+
+fun send(message: Message) {
+   val consumer: Consumer<Message> = …
+   consumer.consume(message)
+   consumer.consume(input = message)
+   consumer.consume(message = message) // error, no overload with that parameter name / incorrect parameter name
+
+   val messageConsumer: MessageConsumer = …
+   messageConsumer.consume(message)
+   messageConsumer.consume(message = message)
+   messageConsumer.consume(input = message) // error, incorrect parameter name (but might as well be allowed)
+}
+```
+
+Another example of this problem:
+
+Suppose we have an interface:
+
+```kotlin
+@FunctionalInterface
+interface Fn2<A, B, R> : BiFunction<A, B, R>, (A, B) -> R {
+    @JvmDefault
+    override operator fun invoke(p1: A, p2: B): R {
+        ...
+```
+
+And then there is an implementation
+
+And then there is an implementation
+
+```kotlin
+object: Fn2<Int,Int,Int> {
+    override fun invokeEx(accum: Int, i: Int): Int =
+    accum + i
+}
+```
+
+It is meaningless to use old names in a new context, so we introduced new ones and got a warning:  `Warning:(598, 76) Kotlin: The corresponding parameter in the supertype 'Fn2' is named 'a'. This may cause problems when calling this function with named arguments.`
+
+Maybe there is some way to do something with it using argument labels? Special labels, or making it possible to change names of outer/inner labels during overwriting? Or maybe, as it was suggested in the related [stackoverflow question](https://stackoverflow.com/questions/50672203/kotlin-explicitly-unnamed-function-arguments), use an unnamed parameter in the interface definition? 
+
+Another related example of it can be seen in the following issue: [KT-9872](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument) 
+
+## Unused arguments
+
+Highly related to the previous topic, [KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters), also known as nameless parameters. Can be implemented using empty labels/empty parameter names.
+
+Some wish to have the ability to have different functions with the same name and signature, which differ only in the way the arguments are labelled. As mentioned in issue [KT-43016](https://youtrack.jetbrains.com/issue/KT-43016/Support-method-overloads-on-parameter-names-like-Swift), it states that there is already a way to do this, especially in Kotlin/Native, generating C interoperability stubs.
+
+And it seems that there actually is something like that, at least [in Kotlin specification](https://kotlinlang.org/spec/overload-resolution.html#call-with-named-parameters)
+
+Even `@Suppress("conflicting_overloads")` annotation is present.
+
+## Reserved syntax
+
+Parameter modifiers are already in the same place where Swift has argument labels.
+
+```kotlin
+send(vararg message: String)
+send(noinline message: () -> String)
+send(crossinline message: () -> String)
+```
+
+# Ways to implement
+
+Different ideas on where and how these ideas can be implemented, concerning the Kotlin compiler. 
+
+## Argument labels: where and how
+
+Probably not the same way as Swift does, because it will end up colliding with parameter modifiers. One proposed idea is to use `as` as a keyword for it:
+
+```kotlin
+fun send(message: String,
+                 port: ValidPort,
+                 securityType: SecurityType,
+                 withDelayBeforeSending: Delay = Delay.DEFAULT_DELAY as delay) { //...
+```
+
+Another way is to use brackets:
+
+```kotlin
+fun send(message: String,
+                 port: ValidPort,
+                 securityType: SecurityType,
+                 [withDelayBeforeSending] delay: Delay = Delay.DEFAULT_DELAY) { //...
+```
+
+
+### Possible drawbacks
+
+## Solutions
+
+### Existing solutions in Kotlin
+
+### Approaches in other languages
+
+### Possible ways to implement
+
+### Possible technical details
+
+## Evaluation
+
+### Prototypes implemented
+
+### Implementation results
+
+### Existing problems
+
+### Further work
+
+## Results
