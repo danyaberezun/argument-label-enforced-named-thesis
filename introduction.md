@@ -63,11 +63,17 @@ drawLine(start=(500, 66), end=(200, 39), width=30)
 
 Which is now more readable and one reading this code does not need to go to the function declaration. But what if we want to have slightly different argument labels, used in the call place? For example, _so that the call can be read as a natural language sentence_?
 
+One simple choice would be to change the names of the arguments, but what if the new names make sense in the call place, but not really in the function body? Separation of argument labels and parameter names can help with this problem.
+
 ```kotlin
 drawLine(from=(500, 66), to=(200, 39), withThickness=30)
 ```
 
 All in all, both using the named form (and, therefore, enforcing it in some places) and using argument labels lead to improved code readability and reduced ambiguity, which results in a decreased amount of errors.
+
+### Support of developing API
+
+
 
 ## In general about Swift
 

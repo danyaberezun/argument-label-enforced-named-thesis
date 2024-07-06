@@ -14,3 +14,8 @@ More specific information regarding the features, discussions and existing proto
     * [EnforcedNamedForm/main.md](Main document)
 * Argument Labels: [ArgumentLabels/](Directory)
     * [ArgumentLabels/main.md](Main document)
+
+## Sources
+There were many sources for discussions, ideas and code snippents, here they are collected for further possible research and discussions:
+
+* [Discussion about internal and external names](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906)

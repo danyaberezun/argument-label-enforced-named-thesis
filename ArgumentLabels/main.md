@@ -202,6 +202,10 @@ fun send(message: String,
 
 ### Possible drawbacks
 
+One may say that argument labels can be easily replaced by Kotlin rich type system (and using type aliases)
+
+Counter: I don’t think that it is very useful to create a type for every place where you are going to use a primitive, especially when there are no other logic or limitations on the type. Also, this approach will not work when both parameters are already of some non-primitive type with some logic. Further thoughts: [reply on forum](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906/12)
+
 ## Solutions
 
 ### Existing solutions in Kotlin
@@ -221,5 +225,11 @@ fun send(message: String,
 ### Existing problems
 
 ### Further work
+
+- how to specify that a parameter doesn't have an external name and cannot be provided in a named form (Swift: `func foo(_ parameterName)`)
+- how to specify that a parameter does have a different external name, but doesn't have to be provided in a named form only
+- how to require a parameter to be provided in a named form only without duplicating its external name
+- how to make a parameter unnamed internally ([KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)) without spelling its external name if it can be inferred from e.g. a supertype method.
+
 
 ## Results

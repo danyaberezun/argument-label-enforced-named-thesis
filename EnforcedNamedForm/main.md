@@ -285,6 +285,15 @@ Named arguments do not have to be passed in specific orders. Named and unnamed a
 
 ### Possible technical details
 
+Another counterpoint: IDEs (IntelliJ IDEA) already highlight argument’s names, so why would we need it?
+
+- Not everyone has this IDE,  for example, when you are reviewing a pull request in GitHub. Or Android Studio.
+
+It's worth providing 2 severity levels of message when such parameter is passed in positional form: warning or error. The use case is when you already have a function and you want to make one of its parameters named only. Instead of breaking user code with an error, a warning and a quick fix would gently encourage migrating to that style of argument passing.
+
+There are related issues for position-based destructing for data classes. “If the way to enforce parameter usage in named form is implemented, then it would be logical to extend it all the way to the data-class restructuring. That is, if constructor parameters' usage is somehow enforced to be in named form, then positional restructuring for those parameters shall be disabled, too.”
+
+
 ## Evaluation
 
 ### Prototypes implemented
@@ -294,5 +303,9 @@ Named arguments do not have to be passed in specific orders. Named and unnamed a
 ### Existing problems
 
 ### Further work
+
+ENF is pretty solid when talking about the passing of literals, but what to do if someone passes a variable with a self-explanatory name?
+
+Things to consider regarding the interaction with [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form) and [KT-9872](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument):
 
 ## Results
