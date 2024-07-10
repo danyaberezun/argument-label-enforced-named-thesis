@@ -33,41 +33,24 @@ At that point the idea is to allow developers to specify two names for an argume
 
 As one can see, the idea is being preserved in this work, with the external names being argument labels, and internal names being parameter names.
 
+There were many further discussions both in the issue and in the posts at [Kotlin Discussions](discuss.kotlinlang.org) revolving around these features. Several findings and points from them will be present in this document.
+
 ### Possible benefits
+
+Adding a feature to a programming language, especially a big one, requires much work and can lead to significant changes and increased support and attention from the language development team, therefore it needs a proper motivation and requests from the language community, which is the case in this situation.
+
+Two common reasons between this feature and Enforcing of Named Argument Form are already described in the introduction document, even though we still can briefly mention them here:
+
+1. Introduction of argument labels can make the function calls look like sentences of natural language, which makes the code more self-documenting
+2. Changing APIs and libraries under development can benefit from argument labels, as with them one may be able to change the internal name of an argument without the need to change anything in the call sites.
+
+More about these reasons can be read back in the introduction document, while here some more specific reasons will be described.
 
 #### Different meanings for arguments inside and outside
 
-Sometimes the information that a developer needs to know about an argument differs from information that an end user needs to know. Not necessary that some information should be forgotten, but sometimes different sides need to have accents on different parts of the same arguments. Examples of this situation can be seen in the following examples, where it is quite difficult to come up with a meaningful name, that will have
+Sometimes the information that a developer needs to know about an argument differs from information that an end user needs to know. Not necessary that some information should be forgotten, but sometimes different sides need to have accents on different properties of the arguments.
 
-```kotlin
-// Suppose we have the following declaration using argument labels feature
-fun <E> List<E>.max([by] comparator: Comparator<E>, [or] zero: E) {
-        E result = zero
-        for (item in this) {
-                if (comparator.compare(result, item) > 0) {
-                        result = item
-                }
-        }
-        return result
-}
-
-listOf(1, 2, 3, 4).max(by=naturalOrder, or=0) // pretty understandable
-// VS
-// Choose names `by` and `or` for function body
-fun <E> List<E>.max(by: Comparator<E>, or: E) {
-        E result = or // Ouch!
-        for (item in this) {
-                if (**by.compare**(result, item) > 0) { // Ouch!
-                        result = item
-                }
-        }
-        return result
-}
-// or choose names `comparator` and `zero` for labels
-listOf(1, 2, 3, 4).max(**comparator**=naturalOrder, **zero**=0) // meh...
-```
-
-Another, a little bit more complicated and closer to reality example:
+One possible example of this situation can be found here, in the situation where it is quite difficult to come up with a meaningful name, that will reflect both sides of the value.
 
 ```kotlin
 // Suppose we have a public API for requests
@@ -110,6 +93,11 @@ repo.startRequest(
         **scheduler = Schedulers.computation()** /* what is this scheduler used for? */
 )
 ```
+
+It can be seen, that in this example, if we choose to have the parameter named "observeOn", its meaning will be unclear at the point it is being used, but if we choose the name "scheduler", then the purpose of the parameter is being unclear for the one using the function.
+
+
+#### Interface implementation
 
 There is a problem related to the implementation of generic interfaces for more specific cases: usually, it would be more meaningful to use different names, as can be seen in the following example from the related issue: [KT-59531](https://youtrack.jetbrains.com/issue/KT-59531/Add-a-way-to-make-parameter-names-of-interface-functions-non-stable)
 

@@ -16,7 +16,8 @@ More specific information regarding the features, discussions and existing proto
     * [ArgumentLabels/main.md](Main document)
 
 ## Sources
-There were many sources for discussions, ideas and code snippents, here they are collected for further possible research and discussions:
+There were many sources for discussions, ideas and code snippents, for the reason of sources and possible further ideas for discussions, they are collected here.
 
 * [Discussion about internal and external names](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906)
+* [Another discussion on the internal parameter names](https://discuss.kotlinlang.org/t/internal-function-parameter-name/17634)
 * [Issue KT-34895 (Internal and External names) on the Kotlin youtrack](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label)

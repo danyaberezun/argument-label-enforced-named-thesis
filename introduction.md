@@ -71,6 +71,36 @@ drawLine(from=(500, 66), to=(200, 39), withThickness=30)
 
 All in all, both using the named form (and, therefore, enforcing it in some places) and using argument labels lead to improved code readability and reduced ambiguity, which results in a decreased amount of errors.
 
+Additional example, when introduction of argument labels results in function calls being read as sentences can be seen here:
+
+```kotlin
+// Suppose we have the following declaration using argument labels feature
+fun <E> List<E>.max([by] comparator: Comparator<E>, [or] zero: E) {
+        E result = zero
+        for (item in this) {
+                if (comparator.compare(result, item) > 0) {
+                        result = item
+                }
+        }
+        return result
+}
+
+listOf(1, 2, 3, 4).max(by=naturalOrder, or=0) // pretty understandable
+// VS
+// Choose names `by` and `or` for function body
+fun <E> List<E>.max(by: Comparator<E>, or: E) {
+        E result = or // Ouch!
+        for (item in this) {
+                if (**by.compare**(result, item) > 0) { // Ouch!
+                        result = item
+                }
+        }
+        return result
+}
+// or choose names `comparator` and `zero` for labels
+listOf(1, 2, 3, 4).max(**comparator**=naturalOrder, **zero**=0) // meh...
+```
+
 ### Support of developing API
 
 Suppose the part of the project you are working on is still in development, so its API is still frequently changing. But there are already some uses of the function in the project, and, possibly, not by you, so frequent changes of API are not really favourable. The worst case is when the function you work on is in some part of a library, and the end users use your library and depend on it.
