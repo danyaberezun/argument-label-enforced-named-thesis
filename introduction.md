@@ -27,7 +27,7 @@ In function calls we will be particularly interested in the function calls with 
 
 Currently, in most cases it is up to the person writing the function call, whether to use the named or positional forms. However, it might be useful to, in some situations, restrict the user's choice to the named form only. Currently Kotlin does not have a dedicated way to do so, therefore, one part of the work, namely, **enforced named form** is focused on introducing such way and analyzing reasons for and consequences of it.
 
-Apart from that, we will also differentiate the role of identifiers being used inside the function body and at the function call site in named form. Those being inside the function body we will call **parameter names** and those used at the function call --- **argument labels**.
+Apart from that, we will also differentiate the role of identifiers being used inside the function body and at the function call site in named form. Those being inside the function body we will call **parameter names** and those used at the function call --- **argument labels**. To differentiate these two separate roles from the sole identifier being used for them, we will use the words _argument name_ in respect to it. Like in this snippet, `start`, `end` and `width` are still _argument names_, as Kotlin does not allow two separate identifiers.
 
 As you may see in the function declaration, currently parameter names and argument labels are the same identifier, making it impossible to use different, separate identifiers for these two different roles. The second part of the work, namely, **argument labels** is focused on introducing and analyzing the implications of possibility to have separate identifiers for argument labels and parameter names.
 

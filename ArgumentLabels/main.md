@@ -187,9 +187,27 @@ Even though it is good that calls may read like language sentences, by further l
 
 One can say in response, that the meaning of such arguments can be understood from the context, such as names of values passed, other arguments, name of the function and other. In addition, it is up to user to give names that makes sense. 
 
-# Ways to implement
+## Ways to implement
 
-Different ideas on where and how these ideas can be implemented, concerning the Kotlin compiler. 
+After basic introduction and the vision behind why this feature could be implemented (or not), we should move to the discussion about what exactly needs to be implemented, what are the things to be conserned of and how the feature can actually be implemented.
+
+### The formal task
+
+By "supporting argument labels feature" we will denote the presence of the following changes to the Kotlin compiler:
+
+1. The ability and syntax to have two identifiers for an argument in the function, method and constructor declaration. One of these identifiers will serve as an **argument label**, an external name, and the other will serve as a **parameter name**, an internal name. If only one identifier is specified, it should serve as both.
+2. The parameter name should be added to the scope of the function body, with the corresponding behaviour being similar to the existing argument names. This parameter name should not be visible from the outside of the function body.
+3. The argument label should be used during the mapping of function call arguments to the parameters. The labels should not be visible inside the function body. It is still has to be possible to use different order of named arguments from the one they were specified in the declaration.
+
+### "What if"s
+
+### Things to consider
+
+- how to specify that a parameter doesn't have an external name and cannot be provided in a named form (Swift: `func foo(_ parameterName)`)
+- how to specify that a parameter does have a different external name, but doesn't have to be provided in a named form only
+- how to require a parameter to be provided in a named form only without duplicating its external name
+- how to make a parameter unnamed internally ([KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)) without spelling its external name if it can be inferred from e.g. a supertype method.
+
 
 ## Argument labels: where and how
 
@@ -219,6 +237,7 @@ send(noinline message: () -> String)
 send(crossinline message: () -> String)
 ```
 
+### Existing implementations
 
 ## Solutions
 
@@ -239,11 +258,5 @@ send(crossinline message: () -> String)
 ### Existing problems
 
 ### Further work
-
-- how to specify that a parameter doesn't have an external name and cannot be provided in a named form (Swift: `func foo(_ parameterName)`)
-- how to specify that a parameter does have a different external name, but doesn't have to be provided in a named form only
-- how to require a parameter to be provided in a named form only without duplicating its external name
-- how to make a parameter unnamed internally ([KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)) without spelling its external name if it can be inferred from e.g. a supertype method.
-
 
 ## Results
