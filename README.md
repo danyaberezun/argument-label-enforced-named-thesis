@@ -19,3 +19,4 @@ More specific information regarding the features, discussions and existing proto
 There were many sources for discussions, ideas and code snippents, here they are collected for further possible research and discussions:
 
 * [Discussion about internal and external names](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906)
+* [Issue KT-34895 (Internal and External names) on the Kotlin youtrack](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label)

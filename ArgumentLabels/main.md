@@ -2,27 +2,36 @@
 
 ## Description
 
-One possible simple example of it (taken from the mentioned issues):
+As was stated in the introduction, the main idea of Argument Labels is to separate the identifier, used in the function calls with named arguments (**argument label**) and the identifier, used inside the body of the function (**parameter name**).
+
+Such separation would require several things to be implemented, including:
+1. A way two specify two separate identifiers (parameter name and argument label) for an argument in function declaration
+2. Linking the parameter name to the usages in the function body
+3. Using argument label in the named arguments resolution/mapping.
+
+One possible example of a function using argument labels (here in brackets):
 
 ```kotlin
 fun <E> List<E>.index([of] element: E): Int? {
     // Use the `element` variable to find its index in the list
 }
 
-someList.index(of = someElement) // Notice how this reads like a normal English phrase: index of someElement
+someList.index(of = someElement)
 
 fun distance([between] a: Int, [and] b: Int): Int {
     return abs(a - b)
 }
 
-val d = distance(between = 6, and = 9) // And again, the distance between 6 and 9, completely readable
+val d = distance(between = 6, and = 9)
 ```
-
 
 ### Discussion history
 
-Firstly discussed in the same issue as the previous idea, this one has its own issue: [KT-34895](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label). The idea is to allow developers to specify two names for an argument in their functions: external (argument label) and internal (parameter name). The external name acts as a use-site name, the one that is seen during the function call using the named form of arguments, and the internal acts as a parameter name, which is used in the body of a function. The main reason behind this is increased code readability and strive to make code more self-documenting.
+Firstly discussed in the same issue as Enforced Named Argument Form, it is currently moved to a separate issue: [KT-34895](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label). 
 
+At that point the idea is to allow developers to specify two names for an argument in their functions: external and internal. The external name acts as a use-site name, the one that is seen during the function call using the named form of arguments, and the internal acts as a parameter name, which is used in the body of a function.
+
+As one can see, the idea is being preserved in this work, with the external names being argument labels, and internal names being parameter names.
 
 ### Possible benefits
 
