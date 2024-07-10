@@ -20,7 +20,9 @@ There were many sources for discussions, ideas and code snippents, for the reaso
 
 * [Discussion about internal and external names](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906)
 * [Another discussion on the internal parameter names](https://discuss.kotlinlang.org/t/internal-function-parameter-name/17634)
-* [Issue KT-34895 (Internal and External names) on the Kotlin youtrack](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label)
-* [Issue KT-59531 (Non-stable parameter names of interface functions)](https://youtrack.jetbrains.com/issue/KT-59531/Add-a-way-to-make-parameter-names-of-interface-functions-non-stable)
+* [Issue KT-34895 (Internal and External names) on the Kotlin youtrack, one of the starting points](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label)
+* [Issue KT-59531 (Non-stable parameter names of interface functions), regarding the overrides with different names](https://youtrack.jetbrains.com/issue/KT-59531/Add-a-way-to-make-parameter-names-of-interface-functions-non-stable)
 * [Stackoverflow discussion on unnamed function arguments](https://stackoverflow.com/questions/50672203/kotlin-explicitly-unnamed-function-arguments)
-* [Issue KT-9872 (disallow calling a method with named argument)](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument)
+* [Issue KT-9872 (disallow calling a method with named argument), to allow overrides with different names without problems](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument)
+* [Issue KT-8112 (provide syntax for nameless parameters), to suppress warning and IDE quickfix](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)
+* [Issue KTIJ-10594 ("Parameter is never used" quickfix), how this quickfix can render the code invalid](https://youtrack.jetbrains.com/issue/KTIJ-10594)

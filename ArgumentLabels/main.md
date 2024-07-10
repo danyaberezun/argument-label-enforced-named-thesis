@@ -151,25 +151,23 @@ This way, there won't be any problems with calls using named argument form, as t
 
 Remark: this is not the only possible way to solve this problem. There were several proposed, like [having an special name for unnamed arguments](https://stackoverflow.com/questions/50672203/kotlin-explicitly-unnamed-function-arguments) or [disallowing named form for some arguments](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument), which shows that the problem itself is something people encounter during their work.
 
-## Unused arguments
+#### Unused arguments
 
-Highly related to the previous topic, [KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters), also known as nameless parameters. Can be implemented using empty labels/empty parameter names.
+Highly related to the previous topic, [some ask for syntax for nameless parameters](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters). In the original issue, the motivation is to use "empty" name for unused parameters, catch statemets and situations, where a function accepts a function with specific amount of parameters, as seen in the example in [issue KTIJ-10594](https://youtrack.jetbrains.com/issue/KTIJ-10594).
 
-Some wish to have the ability to have different functions with the same name and signature, which differ only in the way the arguments are labelled. As mentioned in issue [KT-43016](https://youtrack.jetbrains.com/issue/KT-43016/Support-method-overloads-on-parameter-names-like-Swift), it states that there is already a way to do this, especially in Kotlin/Native, generating C interoperability stubs.
+With argument labels introduced, empty names can be implemented as either empty (that means, set to a special value, like `_` in Rust, for example) argument labels, if one wants to disallow using named form for a parameter (same method, as in Swift), or empty parameter name, to indicate that it is not being used inside the function body. 
 
-And it seems that there actually is something like that, at least [in Kotlin specification](https://kotlinlang.org/spec/overload-resolution.html#call-with-named-parameters)
+#### Overload by parameter names
 
-Even `@Suppress("conflicting_overloads")` annotation is present.
+Some wish to have the ability to have different functions with the same name and signature, which differ only in the way the arguments are labelled. As mentioned in the issue [KT-43016](https://youtrack.jetbrains.com/issue/KT-43016/Support-method-overloads-on-parameter-names-like-Swift), Swift does have such overload, and, when compiling to Kotlin/Native on iOS with specific annotations, it does work. However, one may think that it is strange to have a feature specific to only one platform. 
 
-## Reserved syntax
+Argument labels, again, can be used to provide such overload, if included in the resolution process. However, it may be quite difficult to implement from the point of Java Virtual Machine.
 
-Parameter modifiers are already in the same place where Swift has argument labels.
+### Possible drawbacks
 
-```kotlin
-send(vararg message: String)
-send(noinline message: () -> String)
-send(crossinline message: () -> String)
-```
+One may say that argument labels can be easily replaced by Kotlin rich type system (and using type aliases)
+
+Counter: I don’t think that it is very useful to create a type for every place where you are going to use a primitive, especially when there are no other logic or limitations on the type. Also, this approach will not work when both parameters are already of some non-primitive type with some logic. Further thoughts: [reply on forum](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906/12)
 
 # Ways to implement
 
@@ -195,12 +193,14 @@ fun send(message: String,
                  [withDelayBeforeSending] delay: Delay = Delay.DEFAULT_DELAY) { //...
 ```
 
+Parameter modifiers are already in the same place where Swift has argument labels.
 
-### Possible drawbacks
+```kotlin
+send(vararg message: String)
+send(noinline message: () -> String)
+send(crossinline message: () -> String)
+```
 
-One may say that argument labels can be easily replaced by Kotlin rich type system (and using type aliases)
-
-Counter: I don’t think that it is very useful to create a type for every place where you are going to use a primitive, especially when there are no other logic or limitations on the type. Also, this approach will not work when both parameters are already of some non-primitive type with some logic. Further thoughts: [reply on forum](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906/12)
 
 ## Solutions
 
