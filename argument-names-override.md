@@ -7,6 +7,29 @@ On this page, we will do a comparison of how different languages handle such pro
 ## Kotlin
 
 ```kotlin
+interface Consumer<T> {
+    fun consume(input: T)
+}
+
+class MessageConsumer : Consumer<Message> {
+    override fun consume(message: Message) = …
+}
+
+fun send(message: Message) {
+   val consumer: Consumer<Message> = …
+   consumer.consume(message)
+   consumer.consume(input = message)
+   consumer.consume(message = message) // error, no overload with that parameter name / incorrect parameter name
+
+   val messageConsumer: MessageConsumer = …
+   messageConsumer.consume(message)
+   messageConsumer.consume(message = message)
+   messageConsumer.consume(input = message) // error, incorrect parameter name (but might as well be allowed)
+}
+```
+
+
+```kotlin
 interface Consumer {
     fun consume(input: String)
 }

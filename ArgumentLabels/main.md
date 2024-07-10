@@ -97,60 +97,59 @@ repo.startRequest(
 It can be seen, that in this example, if we choose to have the parameter named "observeOn", its meaning will be unclear at the point it is being used, but if we choose the name "scheduler", then the purpose of the parameter is being unclear for the one using the function.
 
 
-#### Interface implementation
+#### Interface implementation with different argument names
 
 There is a problem related to the implementation of generic interfaces for more specific cases: usually, it would be more meaningful to use different names, as can be seen in the following example from the related issue: [KT-59531](https://youtrack.jetbrains.com/issue/KT-59531/Add-a-way-to-make-parameter-names-of-interface-functions-non-stable)
 
 ```kotlin
-interface Consumer<T> {
-    fun consume(input: T)
+interface WidgetVisitor<R, D> {
+    fun visit(widget: Widget, data: D): R
 }
 
-class MessageConsumer : Consumer<Message> {
-    override fun consume(message: Message) = …
-}
-
-fun send(message: Message) {
-   val consumer: Consumer<Message> = …
-   consumer.consume(message)
-   consumer.consume(input = message)
-   consumer.consume(message = message) // error, no overload with that parameter name / incorrect parameter name
-
-   val messageConsumer: MessageConsumer = …
-   messageConsumer.consume(message)
-   messageConsumer.consume(message = message)
-   messageConsumer.consume(input = message) // error, incorrect parameter name (but might as well be allowed)
-}
-```
-
-Another example of this problem:
-
-Suppose we have an interface:
-
-```kotlin
-@FunctionalInterface
-interface Fn2<A, B, R> : BiFunction<A, B, R>, (A, B) -> R {
-    @JvmDefault
-    override operator fun invoke(p1: A, p2: B): R {
+class WidgetVisitorImpl(val context: Context) : WidgetVisitor<Unit, Context> {
+    override fun visit(widget: Widget, context: Context) {  // <-- warning on "context"
         ...
-```
-
-And then there is an implementation
-
-And then there is an implementation
-
-```kotlin
-object: Fn2<Int,Int,Int> {
-    override fun invokeEx(accum: Int, i: Int): Int =
-    accum + i
+    }
 }
 ```
 
-It is meaningless to use old names in a new context, so we introduced new ones and got a warning:  `Warning:(598, 76) Kotlin: The corresponding parameter in the supertype 'Fn2' is named 'a'. This may cause problems when calling this function with named arguments.`
+Currently, this kind of overriding produces the warning: 
 
-Maybe there is some way to do something with it using argument labels? Special labels, or making it possible to change names of outer/inner labels during overwriting? Or maybe, as it was suggested in the related [stackoverflow question](https://stackoverflow.com/questions/50672203/kotlin-explicitly-unnamed-function-arguments), use an unnamed parameter in the interface definition? 
+```
+The corresponding parameter in the supertype 'WidgetVisitor' is named 'data'. This may cause problems when calling this function with named arguments.
+```
 
-Another related example of it can be seen in the following issue: [KT-9872](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument) 
+And indeed, if the names of a parameter in a supertype and subtype differ, it becomes difficult to pass the parameter in the named form. Using the named from the supertype will only be possible when the value is currently in the type of supertype, and same with subtype:
+
+```kotlin
+val a: WidgetVisitor<Unit, Context> = WidgetVisitorImpl(Context())
+val b: WidgetVisitorImpl = WidgetVisitorImpl(Context())
+    
+a.visit(Widget(), data=Context())
+a.visit(Widget(), context=Context()) // Does not compile
+b.visit(Widget(), data=Context()) // Does not compile
+b.visit(Widget(), context=Context())
+```
+
+The second and the third calls, in fact, produce the "Cannot find a parameter with this name: context/data" error.
+
+This whole situation can be avoided by introducing argument labels: if one uses argument labels, they will only have to keep the argument labels being the same across the sub/supertypes, while being able to have different parameter names, depending on the implementation:
+
+```kotlin
+interface WidgetVisitor<R, D> {
+    fun visit(widget: Widget, data: D): R // data is both a label and a name
+}
+
+class WidgetVisitorImpl(val context: Context) : WidgetVisitor<Unit, Context> {
+    override fun visit(widget: Widget, data context: Context) {  // <-- label is still data
+        ...
+    }
+}
+```
+
+This way, there won't be any problems with calls using named argument form, as they both will use the `data` label, but in the implementation it will be possible to use `context` instead of meaningless in the new context name `data`. 
+
+Remark: this is not the only possible way to solve this problem. There were several proposed, like [having an special name for unnamed arguments](https://stackoverflow.com/questions/50672203/kotlin-explicitly-unnamed-function-arguments) or [disallowing named form for some arguments](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument), which shows that the problem itself is something people encounter during their work.
 
 ## Unused arguments
 
