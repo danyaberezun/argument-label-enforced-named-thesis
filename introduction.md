@@ -73,9 +73,48 @@ All in all, both using the named form (and, therefore, enforcing it in some plac
 
 ### Support of developing API
 
-
+Suppose the part of the project you are working on is still in development, so its API is still frequently changing. But there are already some uses of the function in the project, and, possibly, not by you, so frequent changes of API are not really favourable. The worst case is when the function you work on is in some part of a library, and the end users use your library and depend on it.
+ 
+In this situation, different changes, related to the addition/rearranging of function arguments are likely to ruin compatibility, which will require updating every usage, or, if some arguments with the same type were swapped, can even lead to subtle bugs, that will be noticed only sometime after. And all it can happen even if there were not actually any meaningful changes to the parameters that were used.
+ 
+But if the end user were **forced to use a named form**, such changes would less likely affect them. The parameters could be rearranged, or there could be new, probably optional parameters added, and the end user would not be disturbed without a reason.
+ 
+If one is able external **argument labels**, then they can even change the internal parameter names as a part of the refactoring process, without affecting the end user at all.
+ 
+Therefore, the implementation of enforcement of named form of arguments and argument labels can lead to a better experience during function evolution in public APIs.
+ 
+Another description of a situation, taken directly from the issue discussion:
+ 
+“Here is an additional use-case. When designing a DSL I might have a function with many params and I know that I will adding more params in the future. If people rely on parameter position, then me adding more parameters may break source compatibility. I was to preserve future source compatibility by forcing all my advanced params to be used in named form only.
+ 
+The related story is for the last lambda parameters that can be used outside of parenthesis. I also want to avoid it being used positionally in such case. However, "forcing its usage in named form" shall still also allow its usage after the closing parenthesis. This way, if I have something like:
+ 
+```kotlin
+fun myBuilder(param1: T1, param2: T2, ..., paramN: TN, body: () -> Unit)
+```
+ 
+and only named usage if forced like this:
+ 
+```kotlin
+myBuilder(paramI = valI, ...) { ... }
+```
+ 
+I can safely add more named params before `body`, still being sure that old sources compile.”
 
 ## In general about Swift
 
-...It is worth noticing, that this feature is present in all languages that support ENF, and vice versa.
+Both features described here are present in nearly similar way in the Swift programming language (used for the iOS development). The differences are that argument labels and enforced named form is the default behaviour there. Each argument must be passed in the named form, and wither an argument can be passed without specifying the name is decided at the function declaration. Argument labels are specified in the function declaration, just as an additional name (so there are two identifiers in place of one).
+
+An example of the Swift code:
+
+```swift
+func greet(person: String, from hometown: String) -> String {
+    return "Hello \(person)!  Glad you could visit from \(hometown)."
+}
+print(greet(person: "Bill", from: "Cupertino"))
+```
+
+The argumentation for the use of argument labels is the following: "The use of argument labels can allow a function to be called in an expressive, sentence-like manner, while still providing a function body that’s readable and clear in intent."
+
+One significant difference from Kotlin in regard to the features is that despite having enforced named form, in Swift arguments in the function call have to follow the same order as in the function declaration. Therefore, the names are being used only as the source of information for the user, but not for the compiler. Additional consequence from this fact is that in Swift two or more parameters can have the same argument label (although the parameter names must be unique).
 
