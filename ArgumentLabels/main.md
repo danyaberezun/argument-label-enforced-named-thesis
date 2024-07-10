@@ -165,9 +165,27 @@ Argument labels, again, can be used to provide such overload, if included in the
 
 ### Possible drawbacks
 
-One may say that argument labels can be easily replaced by Kotlin rich type system (and using type aliases)
+Along with the possible benefits, one may argue that such feature should not be introduced into Kotlin. Even though it was not a purpose of this document to elaborate on these points, there are still some worth noting.
 
-Counter: I don’t think that it is very useful to create a type for every place where you are going to use a primitive, especially when there are no other logic or limitations on the type. Also, this approach will not work when both parameters are already of some non-primitive type with some logic. Further thoughts: [reply on forum](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906/12)
+#### Existance of type aliases
+
+One may say that argument labels can be easily replaced by Kotlin rich type system (and using type aliases). They are already present in the language, they can pass additional information, and one can even make some kind of a "parameter name overload" by using different type aliases.
+
+The counterargument to this point is that it can turn into creating a new type for every place instead of using primitives, especially in cases where there is no additional logic or limitations on the value passed. Further thoughts can be found in this [reply on forum](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906/12).
+
+#### Increased confusion in function declaration
+
+With the increased size of function declaration it may be harder to read them. Two identifiers, modifier keyword and a type is already four "words" for just one parameter. And it also can be too easy to mix up which is the argument label and which is the parameter name.
+
+Apart from that, having different names in the function body and in call place can actually be confusing for somebody reading the call and then jumping inside the function body just to find that the argument they were looking at is called something completely different, and the only place with the link between these two is the function declaration.
+
+However, if one is going to read function body, they will have to read the function declaration, at least to know what the argument types are, for example.
+
+#### Meaningless labels
+
+Even though it is good that calls may read like language sentences, by further look it becomes difficult to parse the meaning behind the argument with name like `by` or `using`. The type can become the source of information at that point, but then the purpose of argument labels is lost. Full discussion can be found starting at [this reply](https://discuss.kotlinlang.org/t/internal-function-parameter-name/17634/5).
+
+One can say in response, that the meaning of such arguments can be understood from the context, such as names of values passed, other arguments, name of the function and other. In addition, it is up to user to give names that makes sense. 
 
 # Ways to implement
 
