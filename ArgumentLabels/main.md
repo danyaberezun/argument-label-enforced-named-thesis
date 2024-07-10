@@ -199,28 +199,44 @@ By "supporting argument labels feature" we will denote the presence of the follo
 2. The parameter name should be added to the scope of the function body, with the corresponding behaviour being similar to the existing argument names. This parameter name should not be visible from the outside of the function body.
 3. The argument label should be used during the mapping of function call arguments to the parameters. The labels should not be visible inside the function body. It is still has to be possible to use different order of named arguments from the one they were specified in the declaration.
 
-### "What if"s
-
 ### Things to consider
 
-- how to specify that a parameter doesn't have an external name and cannot be provided in a named form (Swift: `func foo(_ parameterName)`)
-- how to specify that a parameter does have a different external name, but doesn't have to be provided in a named form only
-- how to require a parameter to be provided in a named form only without duplicating its external name
-- how to make a parameter unnamed internally ([KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)) without spelling its external name if it can be inferred from e.g. a supertype method.
+#### Argument Label Syntax
 
+To begin with, we can look at the Swift syntax for argument labels, as it is the most widespread language with this feature supported:
 
-## Argument labels: where and how
+```swift
+func greet(person: String, from hometown: String) -> String {
+    return "Hello \(person)!  Glad you could visit from \(hometown)."
+}
+print(greet(person: "Bill", from: "Cupertino"))
+```
 
-Probably not the same way as Swift does, because it will end up colliding with parameter modifiers. One proposed idea is to use `as` as a keyword for it:
+Here, the argument label `from` is introduced by simply adding an identifier before the parameter name `hometown`. Look how the identifier `person` serves as both an argument label and a parameter name.
+
+In the past some argued that the Swift approach is not possible to use in Kotlin, as there are already parameter modifiers in this place:
+
+```kotlin
+send(vararg message: String)
+send(noinline message: () -> String)
+send(crossinline message: () -> String)
+```
+
+However, it appears that those three are the only parameter modifiers present, and that they are parameter keywords (or weak keywords), which means that they are keywords when it is applicable, and if not, they are identifiers. That, in fact, allows us to use the same syntax for Argument labels in Kotlin as in Swift:
 
 ```kotlin
 fun send(message: String,
-                 port: ValidPort,
-                 securityType: SecurityType,
-                 withDelayBeforeSending: Delay = Delay.DEFAULT_DELAY as delay) { //...
+         withDelayBeforeSending delay: Delay = Delay.DEFAULT_DELAY) { //... }
 ```
 
-Another way is to use brackets:
+Even though, there were several other approaches proposed, one with using the `as` keyword to specify the parameter name (with argument label taking the place before the type specification):
+
+```kotlin
+fun send(message: String,
+         withDelayBeforeSending: Delay = Delay.DEFAULT_DELAY as delay) { //... }
+```
+
+And the other using brackets for specifying argument labels, while placing them in the same place as in Swift:
 
 ```kotlin
 fun send(message: String,
@@ -229,23 +245,23 @@ fun send(message: String,
                  [withDelayBeforeSending] delay: Delay = Delay.DEFAULT_DELAY) { //...
 ```
 
-Parameter modifiers are already in the same place where Swift has argument labels.
+#### Unnamed parameters
 
-```kotlin
-send(vararg message: String)
-send(noinline message: () -> String)
-send(crossinline message: () -> String)
-```
+- how to specify that a parameter doesn't have an external name and cannot be provided in a named form (Swift: `func foo(_ parameterName)`)
+- how to specify that a parameter does have a different external name, but doesn't have to be provided in a named form only
+- how to require a parameter to be provided in a named form only without duplicating its external name
+- how to make a parameter unnamed internally ([KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)) without spelling its external name if it can be inferred from e.g. a supertype method.
+
 
 ### Existing implementations
 
-## Solutions
+#### Existing solutions in Kotlin
 
-### Existing solutions in Kotlin
+#### Approaches in Swift
 
-### Approaches in other languages
+#### Argument Labels in Gleam
 
-### Possible ways to implement
+### Specific implementation ideas
 
 ### Possible technical details
 
@@ -260,3 +276,13 @@ send(crossinline message: () -> String)
 ### Further work
 
 ## Results
+
+## Remarks
+
+### On Swift regarding the argument labels
+
+One may notice, that in Swift texts, for example in the documentation, the functions are being referenced not just by their names, but by their parameter names: "Because the function returns a String value, greet(person:) can be wrapped in a call to the print(\_:separator:terminator:) function"
+
+Considering the fact that overloads by argument labels are possible in Swift, and that for most cases you have to specify the argument labels in a function call, it makes sense to say, that argument labels are the actual part of the function name (of the function _signature_), just being split in multiple words, separated by the values for arguments. 
+
+It can actually stem from the same behaviour for methods in the Objective-C language, with each argument starting with the second is recommended to have a "joining Argument".
