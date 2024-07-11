@@ -187,6 +187,14 @@ Even though it is good that calls may read like language sentences, by further l
 
 One can say in response, that the meaning of such arguments can be understood from the context, such as names of values passed, other arguments, name of the function and other. In addition, it is up to user to give names that makes sense. 
 
+#### Remark: perhaps we should change the approach to arguments (Argument Objects)?
+
+There is an idea to use argument objects for situations, where many arguments are passed in function. Argument object in this situation is a simple data class, which contains some arguments of the original function (configuration, for example), and can easily (with some special syntax) be passed in the function call as well as unpacked on the function side without significant overload.
+
+It is stated that such idea could provide the ABI compatibility for a function with the ability to change the names and order of arguments, by having them in the argument object.
+
+More discussions on this point can be found in one of the related documents...
+
 ## Ways to implement
 
 After basic introduction and the vision behind why this feature could be implemented (or not), we should move to the discussion about what exactly needs to be implemented, what are the things to be conserned of and how the feature can actually be implemented.
@@ -276,9 +284,66 @@ The first one is discussed in the part about unnamed arguments, the second and t
 
 ### Existing solutions
 
-#### Imitation in Kotlin
+Before moving to the possible implementation details of our own, we should first try to look at how these features are emulated in Kotlin, if they are, and how they are implemented in other programming languages.
+
+#### Imitations in Kotlin
+
+Surprisingly, there is no actual solution for introducing argument labels in Kotlin present. Perhaps some are providing two functions, one (the external) with the argument labels, and with the sole purpose of it to pass the arguments into the internal function, with the parameter name. Even though, such pattern is not widespread by any means.
+
+#### About named form in other languages
+
+Currently some of the popular programming languages do not even have the regular named form for passing arguments in a function call, like Java or C++. Still there are some which do have, and among them there is a few that have support for argument labels.
 
 #### Approach in Swift
+
+We have already seen how Swift supports argument labels from the point of syntax, but let's restate it once more:
+
+```swift
+func greet(person: String, from town: String) -> String {
+    return "Hi \(person) from \(town)."
+}
+print(greet(person: "Bill", from: "Cupertino"))
+```
+
+As one can see, in Swift it is possible to specify one identifier, which in this case will serve as both argument label and parameter name, but it is also possible to specify them separately. 
+
+Two important thing to notice is that the named form in Swift is enforced by default, but despite this, the arguments in function invokation have to be specified in the exact order as in the declaration.
+
+Another thing in relation to the inheritance (or, in this case, implementation of a "protocol") can be seen from the following example:
+
+```swift
+protocol Consumer {
+    func consume(input: String)
+}
+
+class MessageConsumer: Consumer {
+    func consume(message: String) {
+        print("Got message: " + message)
+    }
+}
+```
+
+This example of code does not compile due to the following error:
+
+```swift
+error: instance method 'consume(message:)' has different argument labels from those required by protocol 'Consumer' ('consume(input:)')
+```
+
+That means, instances, overrides and implementations should have the same argument labels as their ancestors. However, only the argument labels have to be the same, parameter names can be changed freely, as shown by the following example:
+
+```swift
+protocol Consumer {
+    func consume(input: String)
+}
+
+class MessageConsumer: Consumer {
+    func consume(input message: String) {
+        print("Got message: " + message)
+    }
+}
+```
+
+On the implementation side, argument labels are implemented as a proper second name for an argument. The field is present along with the parameter name in the corresponding nodes in syntax tree. It is being checked in the function calls resolution to match the one used in the call, but, due to the arguments having to match the order of the declaration, no intellectual resolution and mapping is being done there.
 
 #### Argument Labels in Gleam
 
