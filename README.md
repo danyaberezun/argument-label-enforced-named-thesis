@@ -10,10 +10,15 @@ As these features are heavily interconnected, basic descriptions for them and ge
 
 More specific information regarding the features, discussions and existing prototypes is placed in their corresponding directories:
 
-* Enforced Named Argument Form: [Directory](EnforcedNamedForm/)
-    * [Main document](EnforcedNamedForm/main.md)
 * Argument Labels: [Directory](ArgumentLabels/)
     * [Main document](ArgumentLabels/main.md)
+    * [Prototype using jumper function (sugar)](https://github.com/MarkTheHopeful/kotlin/tree/argument-label-proto)
+    * [Prorotype using additional field in structures](https://github.com/MarkTheHopeful/kotlin/tree/argument-label-proto-2)
+    * [Data gathered about the interface overrides with different parameter names](argument-names-override.md)
+* Enforced Named Argument Form: [Directory](EnforcedNamedForm/)
+    * [Main document](EnforcedNamedForm/main.md)
+
+Some additional findings not directly related to either of the features are gathered in the [corresponding document](additional-findings.md).
 
 ## Sources
 There were many sources for discussions, ideas and code snippents, for the reason of sources and possible further ideas for discussions, they are collected here.

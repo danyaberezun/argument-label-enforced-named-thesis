@@ -518,17 +518,54 @@ Lastly, several diagnostics were added, regarding the improper usage of argument
 
 ### Implementation results
 
+The two described prototypes can be found in the following branches of the Github repository:
+
+1. [Prototype using jumper function (sugar)](https://github.com/MarkTheHopeful/kotlin/tree/argument-label-proto)
+2. [Prorotype using additional field in structures](https://github.com/MarkTheHopeful/kotlin/tree/argument-label-proto-2)
+
+Both can be used in the following way:
+
+1. Checkout the needed branch
+2. Run `./gradlew dist`
+3. Use the compiler from `./dist/kotlinc/bin/kotlinc "filename"` to compile the file using the prototype
+
+Now we should move to the evaluation of the prototypes.
+
 #### Tests and behaviour
+
+For the first prototype, the main accent was to make it work at least on simple examples, and it, in fact, did work on them. Top-level functions with argument labels worked correctly, with an exception for functions with variadic arguments, as the needed treatment was not added. Interaction with parameter modifiers (`noinline, crossinline`) was fine, no additional problems were noted. Some basic tests were introduced to the test sets (`fir/analysis-tests/testData/resolve/argumentLabel`). The already present tests without the usage of argument labels were not affected. Additional attention to this prototype was not given. 
+
+For the second prototype, more in-depth testing was concluded, although the commited test set wasn't changed much yet. (Most of the files are still present as local):
+1. Regular behaviour on top level functions, with some arguments having parameter modifiers has been checked, and everything (including variadic arguments) worked.
+2. Class methods
+3. Constructors and callable objects
+4. Overrides
+5. Non-unique names
+6. Separate compilation
 
 #### Benchmarks
 
-### Existing problems
+To this moment, only the first prototype was properly benchmarked, and the result was a significant (10-25%) increase in compilation time on tests with an increase amount of functions with ridiculous amount of arguments.
+
+#### Existing problems
+
+1. Varargs in the first prototype
+2. Separate compilation in the second
+3. Not precisely correct error messages in the second
 
 ### Further work
 
+1. Make the research or poll on the syntax of argument labels
+2. If needed, try to develop the first prototype to the level of the second
+3. Try to add the argument labels to the .class files to support separate compilation
+
 ## Final results
 
+Information was gathered, different benefits and drawbacks were discussed, existing and possible implementations were gathered and prototypes written. 
+
 ## Additional remarks
+
+Some remarks are not directly related to any of the parts in this document, but still are related to argument labels. Those are described in this part.
 
 ### On Swift regarding the argument labels
 
