@@ -32,6 +32,15 @@ There were many further discussions both in the issue (and a few other issues) a
 
 ### Possible benefits
 
+Adding a feature to a programming language, especially a big one, requires much work and can lead to significant changes and increased support and attention from the language development team, therefore it needs a proper motivation and requests from the language community, which is the case in this situation.
+
+Two common reasons between this feature and Argument Labels are already described in the introduction document, even though we still can briefly mention them here:
+
+1. Introduction of enforced named form can enforce explicit indication of the meaning of the arguments passed, especially when the arguments are literals or objects, constructed in place. Such direct indication of meaning makes the code more self-documenting
+2. Changing APIs and libraries under development can benefit from enforcing named form for the arguments that can be affected by changes in future. When all such arguments are passed strictly in named form, they can freely be reordered on the side of the developer without any changes needed from the end user. Apart from that, new parameters with default values could be added to the function, and it would not break the existing calls regardless of place they were added.
+
+More about these reasons can be read back in the introduction document, while here some more specific reasons will be described.
+
 #### Explicit indication of arguments meaning
 
 If a function has many parameters of the same type, especially when this type is primitive, especially when the arguments are passed as constants or objects created at the place of calling, it becomes easy to mix up different parameters, ultimately resulting in hard-to-detect bugs.
