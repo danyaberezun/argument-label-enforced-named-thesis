@@ -567,16 +567,20 @@ For the first prototype, the main accent was to make it work at least on simple 
 
 For the second prototype, more in-depth testing was concluded, although the commited test set wasn't changed much yet. (Most of the files are still present as local):
 1. Regular behaviour on top level functions, with some arguments having parameter modifiers has been checked, and everything (including variadic arguments) worked correctly.
-2. Regular behaviour on class methods was checked, with methods having different visibility and various parameter modifiers. It also worked correctly.
-3. Constructors and callable objects
-4. Overrides
-5. Non-unique names
-6. Trailing lambdas.
-7. Separate compilation
+2. Regular behaviour on class methods was checked, with methods having different visibility and various parameter modifiers. It also worked correctly and consistently.
+3. The behaviour was also checked for contructors and operators (such as `invoke`), where the proper and expected results were achieved. The parameter names served as members (fields) in case of contrustors.
+4. For class methods, situations were a method of a descender overrides one in an ancestor. The override worked correctly (in the same way as without argument labels), although the warning was not present if different argument labels were used. No problems were encountered when different parameter names were used, as the mapping is now being done by argument labels.
+5. For non-unique argument labels (two or more parameters with the same argument label), an addition to already existing diagnostic on function parameter names was made (simply check the argument labels separately). The diagnostic worked and produced correct error message.
+6. Additional attention was given to trailing lambdas and their usage in named form, especially in argument labels. It worked fine, just as regular arguments.
+7. Lastly, it was attempted to try and compile the function and its call separately, to check, whether it will (somehow) work. No miracles, it failed, as currently argument labels are not serialized and anyhow put even into the IR.
 
 #### Benchmarks
 
-To this moment, only the first prototype was properly benchmarked, and the result was a significant (10-25%) increase in compilation time on tests with an increase amount of functions with ridiculous amount of arguments.
+Up to this moment, only the first prototype was properly benchmarked, and the result was a significant (10-25%) increase in compilation time on tests with an increased amount of functions with many arguments with argument labels.
+
+The benchmarks included tests with many (hundreds to thousands) functions with small or large (hundreds) amount of arguments and many function calls. Every test has a version without argument labels and with argument labels.
+
+The prototype shown no significant decrease in performance on tests without argument labels.
 
 #### Existing problems
 
