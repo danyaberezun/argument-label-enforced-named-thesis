@@ -43,13 +43,15 @@ More about these reasons can be read back in the introduction document, while he
 
 #### Explicit indication of arguments meaning
 
-If a function has many parameters of the same type, especially when this type is primitive, especially when the arguments are passed as constants or objects created at the place of calling, it becomes easy to mix up different parameters, ultimately resulting in hard-to-detect bugs.
+Even though this benefit is already partly described in the introduction, it can be useful to restate it once more with more examples and references.
 
-Easiest to imagine examples of this kind include functions with boolean flags to configure the function’s behavior.
+If a function has many parameters of the same type, especially when this type is primitive, and, even more, when the arguments are passed as constants or objects created at the call site, it becomes easy to mix up different parameters, ultimately resulting in hard-to-detect bugs.
 
-**Enforcing named arguments form** solves this problem. The developer can mark the function or some of its arguments as requiring a named form and then everyone who will use it will specify the names of arguments, explicitly indicating the meaning of passed argument.
+Easiest to imagine examples of this kind include functions with boolean flags to configure the function’s behavior, or some various numerical parameters being passed to configure or tune function's behaviour.
 
-The problem is not a new thing, so there are already such solutions as boolean literal inspection (solution to [KTIJ-1634](https://youtrack.jetbrains.com/issue/KTIJ-1634/Add-inspection-for-boolean-literals-passed-without-using-named-parameters-feature)) as well as requests for more in-depth inspections ([KTIJ-18880](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names))
+**Enforcing named arguments form** can be used to solve this problem. The developer can mark the function or some of its parameters as requiring a named form and then everyone who will use it will have to specify the names of arguments, explicitly indicating the meaning of passed arguments.
+
+The problem is not a new thing, so there are already related solutions as boolean literal inspection (solution to [KTIJ-1634](https://youtrack.jetbrains.com/issue/KTIJ-1634/Add-inspection-for-boolean-literals-passed-without-using-named-parameters-feature)) as well as requests for more in-depth inspections ([KTIJ-18880](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names))
 
 There is even a section in Coding Conventions about it: “Use the named argument syntax when a method takes multiple parameters of the same primitive type, or for parameters of `Boolean` type, unless the meaning of all parameters is clear from the context.” ([Named arguments](https://kotlinlang.org/docs/coding-conventions.html#named-arguments))
 
@@ -79,6 +81,8 @@ reformat(
 )
 ```
 
+Even though the second one looks way more verbose, the meaning of the first one is impossible to understand without looking at the function declaration.
+
 Another couple of examples from real code from a Kotlin machine-learning library, https://github.com/Kotlin/kotlindl:
 
 ```kotlin                                                                                                                                                 
@@ -96,29 +100,29 @@ Conv2D(
 ```kotlin
 model.use {
     it.compile(
-        **optimizer = Adam(),
+        optimizer = Adam(),
         loss = Losses.SOFT_MAX_CROSS_ENTROPY_WITH_LOGITS,
-        metric = Metrics.ACCURACY**
+        metric = Metrics.ACCURACY
     )
 
     it.printSummary()
 
     it.fit(
-        **dataset = train,
+        dataset = train,
         epochs = 10,
-        batchSize = 100**
+        batchSize = 100
     )
 
-    val accuracy = it.**evaluate(dataset = test, batchSize = 100)**.metrics[Metrics.ACCURACY]
+    val accuracy = it.evaluate(dataset = test, batchSize = 100).metrics[Metrics.ACCURACY]
 
     println("Accuracy: $accuracy")
     it.save(File("model/my_model"), writingMode = WritingMode.OVERRIDE)
 }
 ```
 
-It would be quite weird to use an unlabeled form in these examples.
+It is quite difficult to find examples of use of these functions without the usage of named form, but if one were to use it, the meaning of the calls and purposes of the arguments would be impossible to guess. So, to prevent it, it makes perfect sense to mark such functions or these parameters as parameters with enforced named argument form.
 
-## Functions with multiple primitive arguments
+#### Remark: some statistics about "bad" function calls
  
 According to BigCode platform, functions with multiple primitive arguments are widely present in the global codebase, including Android Development. Some examples may include functions which accept coordinates, functions to work with images etc. Those functions are the primal source of different errors and bugs related to mixing of arguments of some type and passing literals into functions, so **enforcing the named form** of arguments can be really helpful in these cases.
  
