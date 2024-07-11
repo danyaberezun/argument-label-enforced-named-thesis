@@ -486,17 +486,49 @@ What about usage of labels instead of parameter names inside the function body?
 
 ## Evaluation
 
+To test some the ideas described, collect additional findings and have a starting point for possible further implementations, the prototypes for the argument labels feature were developed.
+
+A prototype here is a version of a Kotlin compiler, with modifications made to support the new feature. The feature can possibly be covered by tests and different benchmarks in the prototype, but still have poor code quality and/or questionable design choices. Apart from that, it may not work or be untested for some specific cases, which are mostly noted in the corresponding part.
+
 ### Prototypes implemented
 
+Due to initial lack of experience working with Kotlin compiler source code, initially the syntactic sugar prototype was implemented. However, some time after, a more "proper" prototype, with a new field added, was created separately. Here we will discuss the implementation details of both of them.
+
+#### Via jumper function (sugar)
+
+For the parser part, the needed change was to modify the `parseFunctionParameterRest function, which, as one can see from the name, parses the function parameter after parsing its modifiers. The change needed was to add the case of two identifiers instead of one, and if so, parse them. After this, a parameter with an argument label will be represented by having two consecutive identifiers instead of one. 
+
+We decided to use the Swift syntax for argument labels for now, but it is possible to change it to use other variants proposed in the corresponding part of this document with changes only in parser and the translation into FIR part.
+
+For the desugaring we added (an unefficient) function to check the presence of argument labels in a function, and then added separate parameter to the transformation function, which controlls, whether to generate a jumper body and use argument labels, or to proceed with regular body, but change the name and use parameter names.
+
+After that no additional changes were made, as that was enough for basic tests to work.
+
+#### Via proper field
+
+For the role of the new identifier, we settled on the argument label, as it seems as the one requiring less changes to the already existing code and a faster path to a seemingly working prototype.
+
+The parser part was changed the same way as in the "sugar" implementation.
+
+After the work in parser, a new field was added to the FIR nodes via the generator and configurator of them. This field was then initialized by the mew identifier during the transformation of ValueParameter lightTree/PSI node to FIR, or by the parameter name in case the valueParameter lacked an argument label.
+
+After that, the process of argument to parameter mapping in the resolution stage (`FirArgumentsToParameterMapper.kt`) was modified. The internal mapping of names to the function parameters was changed to map argument labels instead, and a check was added to the situation, when someone is using the parameter name instead of the argument label for an argument (via an additional mapping).
+
+Lastly, several diagnostics were added, regarding the improper usage of argument labels or some of the argument labels being not unique.
+
 ### Implementation results
+
+#### Tests and behaviour
+
+#### Benchmarks
 
 ### Existing problems
 
 ### Further work
 
-## Results
+## Final results
 
-## Remarks
+## Additional remarks
 
 ### On Swift regarding the argument labels
 
