@@ -584,19 +584,25 @@ The prototype shown no significant decrease in performance on tests without argu
 
 #### Existing problems
 
-1. Varargs in the first prototype
-2. Separate compilation in the second
-3. Not precisely correct error messages in the second
+There are several problems with the prototypes made, both from the technical and from the design sides. We have mostly described them in the previous parts, but here they all are gathered in one place.
+
+1. The first prototype does not work, if a function under transformation contains variadic arguments.
+2. The first prototype is currently not designed to support constructors and methods in classes
+3. The second prototype does not support separate compilation of a function declaration and its calls.
+4. The error messages in the second prototype are not precisely correct with locations in some cases. 
 
 ### Further work
 
-1. Make the research or poll on the syntax of argument labels
-2. If needed, try to develop the first prototype to the level of the second
-3. Try to add the argument labels to the .class files to support separate compilation
+Even though this document is a complete report on the research of argument labels, there are still directions to move before the final decision and, if positive, implementation of the feature into the Kotlin programming language. 
+
+The three main directions can be summarized in the following list:
+1. Make further research on specific design choices, ranging from specific syntax used for argument labels to the ways to store them in compilation artifacts. The most straightforward action in this direction will be to conclude a poll on the syntax choice. Apart from that, one can dive deeply into specifics of implementation of argument labels in Swift or Gleam, as the first is being compiled into LLVM, and the second --- to JavaScript, which can be useful for Kotlin/Native and Kotlin/JS respectively
+2. Add further improvements to the second prototype. Separate compilation problem can be resolved, small bugs with warnings not showing on can be fixed, additional tests and benchmarks can be done. One can also try writing it with making the new identifier play the role of parameter name instead of argument label.
+3. Develop the first prototype to the level of the second one. Despite it being created just to make something work and wasn't tested properly, maybe the idea has more behind it that it seems, if polished a little bit more and optimized. The jumper function can be inlined, the check can be replaced with a flag somewhere during the compilation and so on. And it does not require any further meddling with IR and compilation artifacts.
 
 ## Final results
 
-Information was gathered, different benefits and drawbacks were discussed, existing and possible implementations were gathered and prototypes written. 
+During the work on this issue, many insights and information were gathered from the issues, discussions and other documents, as well as some additional research was concluded, including existing implementations in other languages. Different possible use-cases, benefits and drawbacks were discussed, possible ways of implementations were analyzed, different peculiarities were discovered and recorded. Finally, two prototypes were implemented as to prove the concept and allowing for further experiments and research regarding the feature.
 
 ## Additional remarks
 
