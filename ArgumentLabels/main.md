@@ -233,7 +233,7 @@ After basic introduction and the vision behind why this feature could be impleme
 
 By "supporting argument labels feature" we will denote the presence of the following changes to the Kotlin compiler:
 
-1. The ability and syntax to have two identifiers for an argument in the function, method and constructor declaration. One of these identifiers will serve as an **argument label**, an external name, and the other will serve as a **parameter name**, an internal name. If only one identifier is specified, it should serve as both.
+1. The ability and syntax to have two identifiers for an argument in functions, methods and constructors declarations. One of these identifiers will serve as an **argument label**, an external name, and the other will serve as a **parameter name**, an internal name. If only one identifier is specified, it should serve as both.
 2. The parameter name should be added to the scope of the function body, with the corresponding behaviour being similar to the existing argument names. This parameter name should not be visible from the outside of the function body.
 3. The argument label should be used during the mapping of function call arguments to the parameters. The labels should not be visible inside the function body. It is still has to be possible to use different order of named arguments from the one they were specified in the declaration.
 
@@ -244,6 +244,10 @@ We have not mentioned lambdas in the first point. Why?
 Turns out, it is currently impossible to use named form of arguments for calls of functional types (such as lambdas). Therefore, if named form is impossible, it is meaningless to add argument labels for lambdas.
 
 Another approach would be to allow named form for lambdas, but it will require dealing with harder parsing stage due to the destructuring declaration.
+
+#### Remark: functions, methods and constructors?
+
+Perhaps one may want to include argument labels only to a subset of those mentioned here. Currently we have not found any specific reasons to ignore any of those, with exception of, possibly, constructors, as introduction of argument labels may lead to a slight confusion on what will count as a class member, and what will be used only in the constructor call in named form.
 
 ### Things to consider
 

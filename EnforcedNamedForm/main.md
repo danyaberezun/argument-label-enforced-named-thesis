@@ -171,7 +171,30 @@ There are several counterarguments to this position:
 1. Not everyone has such kind of IDE. One most natural example of such situation is code review in GitHub.
 2. It only works agains the "self-documentation" point. If the prohibition of positional form is being done for a different reason (as with lambdas), the point still holds.
 
-## Solutions
+## Ways to implement
+
+After basic introduction and the vision behind why this feature could be implemented (or not), we should move to the discussion about what exactly needs to be implemented, what are the things to be conserned of and how the feature can actually be implemented.
+
+### The formal task
+
+By "adding a way to enforce named argument form" we will denote the presence of the following changes to the Kotlin compiler:
+
+1. The syntax to mark a parameter, a function, a class or a whole file as requiring named form of arguments for function calls of/in the marked declarations. If such "mark" is not present, the behaviour should not be affected. The arguments affected by it will be referred here as "requiring named form".
+2. During the argument to parameter mapping, if an argument requires named form and is currently being passed in the call using positional form, a warning or an error should be produced.
+
+### Things to consider
+
+Modes: positional-only/named-only/mixed/no-trailing-lambda
+
+IDE vs Compiler
+
+Migration levels
+
+Binary compatibility
+
+Argument Objects and data classes (and androidx)
+
+Additional annotations
 
 ### Existing solutions in Kotlin
 
@@ -256,20 +279,6 @@ If you don’t explicitly specify the argument label, it will be implicitly equa
 ## Other remarks on function arguments in Kotlin
 
 Named arguments do not have to be passed in specific orders. Named and unnamed arguments can be mixed, but only when the values of all other arguments *can be deduced* from the named ones. That is not always clear. There can be only one variadic argument in a function, but it can be placed at any point of the arguments list, although all arguments after it have to be in a named form. Except for the case, when the last argument is a (lambda) function, which does not have to be named if passed as a trailing lambda
-
-### Things to consider
-
-Modes: positional-only/named-only/mixed/no-trailing-lambda
-
-IDE vs Compiler
-
-Migration levels
-
-Binary compatibility
-
-Argument Objects and data classes (and androidx)
-
-Additional annotations
 
 ### Possible ways to implement
 
