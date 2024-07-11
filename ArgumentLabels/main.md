@@ -347,6 +347,46 @@ On the implementation side, argument labels are implemented as a proper second n
 
 #### Argument Labels in Gleam
 
+Another language related to our investigation is [Gleam](https://gleam.run/), a new programming language from the creators of Rust. 
+
+Even though it does not forces named form of arguments in any kind, it does introduce labelled arguments.
+
+Despite having Rust-like syntax and being compiled into Erlang and Javascript, argument labels are supported in Swift likeness, as one can see on the following listing:
+
+```gleam
+pub fn main() {
+  // Without using labels
+  io.debug(calculate(1, 2, 3))
+
+  // Using the labels
+  io.debug(calculate(1, add: 2, multiply: 3))
+
+  // Using the labels in a different order
+  io.debug(calculate(1, multiply: 3, add: 2))
+}
+
+fn calculate(value: Int, add addend: Int, multiply multiplier: Int) {
+  value * multiplier + addend
+}
+```
+
+There are two significant differences from the Swift, however:
+
+1. The labbeled arguments can be used in any order, with the only limitation is that the labelled arguments have to be after the positional ones.
+2. If a label is not specified for an argument, then it can be only used in positional form. 
+
+To understand the second part more, here is the call of the `calculate` function, which does not compile:
+
+```gleam
+calculate(value: 1, add: 2, multiply: 3)
+```
+
+It produces the following error:
+
+```
+Unexpected label: You have already supplied all the labelled arguments that this constructor accepts.
+```
+
 ### Specific implementation ideas
 
 ### Possible technical details
