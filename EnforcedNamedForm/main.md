@@ -2,6 +2,22 @@
 
 ## Description
 
+As was stated in the introduction, by the name form of an argument or a named function call we understand an argument passed in the function call with the name of the argument specified. The main idea of the enforced named arguments form feature is to allow developers mark some of the arguments in a function (or perhaps the whole function) as requiring strictly named form.
+
+This will require the following modifications to be implemented:
+1. Add a way for a developer to mark an argument or a function (or a class? or a file?) as requiring named form for the function calls (or for specific arguments in these calls).
+2. Transform this mark into a property of an argument, a function or any other entity
+3. Verify, ensure or check that if an argument is marked as requiring the named form.
+
+One possible example of such marking can be achieved by introducing a new parameter keyword (here --- `enf`), as can be seen on the following listing:
+
+```kotlin
+fun callMe(regular: Int, **enf** enforced: Int) {}
+
+callMe(30, 566) // Compilation error
+callMe(30, enforced=566) // Compiles
+```
+
 ### Discussion history
 
 Initially arose from issue [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form), implementation of this idea will allow developers to restrict some of the parameters of their functions to accept only named form (i.e. `drawPoint(x = 5, y = 6)`). This could be useful to prevent passing values with the same type as argument, but with different meanings, especially when working with literals. The extreme case here is functions that accept multiple Boolean arguments.

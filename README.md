@@ -31,3 +31,5 @@ There were many sources for discussions, ideas and code snippents, for the reaso
 * [Issue KT-9872 (disallow calling a method with named argument), to allow overrides with different names without problems](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument)
 * [Issue KT-8112 (provide syntax for nameless parameters), to suppress warning and IDE quickfix](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)
 * [Issue KTIJ-10594 ("Parameter is never used" quickfix), how this quickfix can render the code invalid](https://youtrack.jetbrains.com/issue/KTIJ-10594)
+* [Issue KT-14934 (Enforce parameter usage only in named form), one of the starting points](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form)
+* Kotlin/Compose team design discussion 2023 (available by request)

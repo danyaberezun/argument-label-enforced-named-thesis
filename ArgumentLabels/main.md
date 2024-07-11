@@ -615,3 +615,18 @@ One may notice, that in Swift texts, for example in the documentation, the funct
 Considering the fact that overloads by argument labels are possible in Swift, and that for most cases you have to specify the argument labels in a function call, it makes sense to say, that argument labels are the actual part of the function name (of the function _signature_), just being split in multiple words, separated by the values for arguments. 
 
 It can actually stem from the same behaviour for methods in the Objective-C language, with each argument starting with the second is recommended to have a "joining Argument".
+
+### On aliases for functions and arguments
+
+Maybe at some point you would like to rename all arguments of a function, but just for one file, to do something like the following:
+
+```kotlin
+fun f(a1: Int, a2: Int, a3: Int) {} //...
+
+alias g(b1, b2, b3) = f(a1, a2, a3) // now g with arguments b1, b2, b3 is the same as f
+alias h(c1) = f(a1) // same as h(c1, a2, a3) = f(a1, a2, a3)
+alias f(d1, d2, d3) = f(a1, a2, a3) // now f has arguments named d1, d2, d3
+alias g(e2) = g(b2) // now g has arguments b1, e2, b3, and still just the call to f
+```
+
+Could any of these be implemented? Why would someone need those? Can we do something like "local renaming of an argument"?
