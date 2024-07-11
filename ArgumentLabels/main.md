@@ -207,6 +207,14 @@ By "supporting argument labels feature" we will denote the presence of the follo
 2. The parameter name should be added to the scope of the function body, with the corresponding behaviour being similar to the existing argument names. This parameter name should not be visible from the outside of the function body.
 3. The argument label should be used during the mapping of function call arguments to the parameters. The labels should not be visible inside the function body. It is still has to be possible to use different order of named arguments from the one they were specified in the declaration.
 
+#### Remark: what about lambdas?
+
+We have not mentioned lambdas in the first point. Why?
+
+Turns out, it is currently impossible to use named form of arguments for calls of functional types (such as lambdas). Therefore, if named form is impossible, it is meaningless to add argument labels for lambdas.
+
+Another approach would be to allow named form for lambdas, but it will require dealing with harder parsing stage due to the destructuring declaration.
+
 ### Things to consider
 
 #### Argument Label Syntax
@@ -387,9 +395,58 @@ It produces the following error:
 Unexpected label: You have already supplied all the labelled arguments that this constructor accepts.
 ```
 
+Even though the 1. is something we already have in Kotlin, the approach by 2. does not seem feasible in our situation, as we have to support the old Kotlin syntax, and, if we are to adopt this part of Gleam likeness, all previous named form usages would be rendered invalid.
+
 ### Specific implementation ideas
 
+Now after we moved through the existing implementation, we need to think about which can we actually use for prototype or actual implementation, in regard to their benefits and drawbacks.
+
+#### Syntactic sugar: jumper function
+
+One of the more primitive approaches is to implement this feature as a syntactic sugar via splitting the initial function with argument labels into two.
+
+First, we do the parsing as usual, but with allowance for two identifiers for a parameter by a slight change in the related function. Second, during the transformation of the parsed code source tree (PSI or lightTree) into FIR, we check whether a function has argument labels in any of its arguments. And then, is those are present, instead of regular processing of such functions, we generate two new functions as follows:
+
+1. The first one will be denoted as the external one. It will have the name of the original function, and the parameter names will be set to the function's argument labels, but the body will be replaced with the call to the internal function, with all the received parameters being simply passed to the internal call
+
+2. The second one will be denoted as the internal one. Its name will be the original name with some internal suffix added, hiding it from the user. Its parameters will be the parameter names of the original function, and its body will be the body of the original function.
+
+These functions will be generated during the desugaring stage, and then the compilation will follow as usual. The original function will not be generated in this case (therefore, there will be only two new functions, the internal one and the external one). If a function does not contain argument labels, its transformation will not be affected in any way.
+
+The main disadvantage of this approach is that it creates additional functions, therefore decreasing both the compilation and execution times, among with increased size of the resulting artifact. 
+
+The advantage is that being syntactic sugar, this approach can be much easier to implement than the first one. Apart from that, by generating the functions on early stages, we do not have to worry about platform compatibility, as the backend receives these functions as regular functions like they were written by a user, despite having the new feature in the syntax.
+
+There are more additional things to worry about in this approach, however: 
+
+1. Variadic arguments have to be handled in a special way (add a spread operation), which additionaly increases the overhead.
+2. For each method in a class, there will be additional method generated, so we will have to keep track of all the method modifiers.
+3. "Internal" methods will still be accesible through reflections
+4. Primary constructors will also require additional handling, for example, the primary constructor could be just delegating the behaviour to the secondary. Still, that would require additional thoughts.
+
+#### New field for argument label
+
+As an argument label is, essentially, just an additional name for a function argument, it naturally comes that one of the possible ways to implement this feature is to simply add this new field to related structures, just like it is done in the Swift programming language. All structures holding the `ValueParameter` on various levels, from parser and PSI to FIR and, probably, IR, will be affected by this addition. Apart from that, some additional changes would need to be done during the resolution stages (specifically, argument-parameter mapping), as the new names will have to be considered during either the call using the named form or inside the function body.
+
+The main disadvantage of this approach is that it requires adding changes to many different classes and, in the worst-case scenario, checking every existing creation of related classes in the vast code base of the Kotlin compiler, along with passing the new name down to platform-dependent code. Such work can be overwhelming for the first prototype to implement, and the amount of work required is not easy to estimate.
+
+Nevertheless, on the side of advantages, this method is expected to be pretty robust, as it just adds a new name without any additional duplication. Apart from that, it should work in many different cases initially not discussed but logically related, such as class constructors and methods.
+
 ### Possible technical details
+
+In this section different details and moments are collected, that should be noted during the implementation.
+
+#### Minimizing the changes
+
+#### Separated compilation
+
+#### Interoperability with Java
+
+#### Not-JVM backends
+
+#### Inheritance
+
+#### Related diagnostics
 
 ## Evaluation
 
