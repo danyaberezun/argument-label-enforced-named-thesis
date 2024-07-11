@@ -184,19 +184,40 @@ By "adding a way to enforce named argument form" we will denote the presence of 
 
 ### Things to consider
 
+#### Different areas of effect
+
+It was already mentioned several times, that we may want to enforce named arguments form for different entities on different levels, from more specific to global:
+
+1. Mark a specific argument as requiring named form. Simple, concise, point-wise. Blows up the size of declaration, if you want more that one or two arguments to have this property
+2. Mark all arguments starting from a specific one as requiring named form. Works well if you have a large "tail" of optional parameters for configuration. Can lead to confusion, as one will somehow need to place a "separator" which will not be related to a specific parameter by itself, but rather to a range of parameters. (One can say that you'll only need to put the mark on the first such parameter, but since in Kotlin one can mix named and positional arguments, this is not going to work)
+3. Mark a function as requring a named form. Also simple, all the arguments of such function will require named form. Same as 2., but without the inconsistency about the modifier being put somewhere in the middle. Has problems when you might actually keep some arguments in positional form, like the first one (which often is the direct object of the function).
+4. Mark a whole class as requring a named form. If you decided that in a class you will mark all functions as requring a named form, or you are a Swift enjoyer, you may want to enforce named form in each its method. Has the same problem as the 3., but in addition users may forget about the modifier being present somewhere in the beginning of the class.
+5. Mark the whole file. No comments here, basically the same as the previous point.
+6. Mark the whole project as using strictly named form. May actually be useful if you are working on a library, which can still be in development, or you want to enforce this specific codestyle in your project on the compiler-level.
+
+Everything starting from the 3. level seems to be overkill, especially in regard to the first argument of the function. And what if we want to prohibit only a specific pattern in regard to the usage of positional form? More about that in the next part.
+
+#### Different modes of operation
+
 Modes: positional-only/named-only/mixed/no-trailing-lambda
+
+#### Level of diagnostic 
 
 IDE vs Compiler
 
+#### Migration levels
+
 Migration levels
+
+#### Binary compatibility
 
 Binary compatibility
 
 Argument Objects and data classes (and androidx)
 
-Additional annotations
-
 ### Existing solutions in Kotlin
+
+Additional annotations
 
 ## Enforcing named form
 
