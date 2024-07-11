@@ -124,24 +124,25 @@ It is quite difficult to find examples of use of these functions without the usa
 
 #### Remark: some statistics about "bad" function calls
  
-According to BigCode platform, functions with multiple primitive arguments are widely present in the global codebase, including Android Development. Some examples may include functions which accept coordinates, functions to work with images etc. Those functions are the primal source of different errors and bugs related to mixing of arguments of some type and passing literals into functions, so **enforcing the named form** of arguments can be really helpful in these cases.
- 
+According to the data, obtained via different sources (including search by regexp on GitHub), functions with multiple primitive arguments are widely present in the global codebase. Some of the examples include Android Development, various UI functions, utilities to work with images or canvases and more. 
+
 Some of the examples are part [of an Android application, responsible for working with a database](https://github.com/GrzegorzDawidek/AndroidZal/blob/e942947fdd01b3191f472cf378e46c6523a93721/app/src/main/java/com/example/sqllitetask/DatabaseHelper.kt), a [simple image utility](https://github.com/2T-T2/ImageUtil/blob/acc3eb444365caf89e014de9747831b0fec9cbe6/src/ImageUtil.kt) and a [small part of a shopping app](https://github.com/jiangyuanyuan/KotlinMall/blob/0e58f238614a4ba2644712ce4190290c9e19bed0/GoodsCenter/src/main/java/com/kotlin/goods/presenter/GoodsDetailPresenter.kt).
  
 While those are definitely not examples of clean and good code, the fact is: that people do write like that, and they do use Kotlin, and, probably, some people even depend on their code. 
  
-Moment for more general statistics using the BigCode platform:
- 
-Functions using **six** arguments of primitive types are present in 0.36% of files from active repositories:
- 
-![Functions with six arguments](./SixArgs.png)
- 
-Broadening the range of primitive types and lowering the number required to four results in a much bigger number: 4.26% of files in active repositories:
- 
-![Functions with four arguments](./FourArgs.png)
- 
-This seems like a significant part of the global codebase, in my opinion.
+If we are to move to concrete data, GitHub search by file using regular expression, we can get the following numbers:
 
+| Amount of arguments, at least `x` | Files with at least `x` positional arguments | Files with at least `x` literal arguments |
+|-----------------------------------|----------------------------------------------|-------------------------------------------|
+| 1 | 11400000 | 8700000 |
+| 2 | 7900000 | 2000000 |
+| 3 | 3600000 | 553000 |
+| 4 | 1800000 | 314000 |
+| 5 | 745000 | 151000 |
+| 6 | 446000 | 89600 |
+| 7 | 267000 | 51500 |
+ 
+This does look like a significant portion of the codebase, and may serve as an argument to introduce the Enforced Named Arguments Form.
 
 ### Possible drawbacks
 
