@@ -6,14 +6,14 @@ Current work on the documents is in progress. Aggregation and structuring of exi
 
 ## Structure of the repository
 
-As these features are heavily interconnected, basic descriptions for them and general reasons to implement them are presented in the [introduction.md](introduction) file. Glossary for both proposals is specified in the [glossary.md](glossary) file.
+As these features are heavily interconnected, basic descriptions for them and general reasons to implement them are presented in the [introduction](introduction.md) file.
 
 More specific information regarding the features, discussions and existing prototypes is placed in their corresponding directories:
 
-* Enforced Named Argument Form: [EnforcedNamedForm/](Directory)
-    * [EnforcedNamedForm/main.md](Main document)
-* Argument Labels: [ArgumentLabels/](Directory)
-    * [ArgumentLabels/main.md](Main document)
+* Enforced Named Argument Form: [Directory](EnforcedNamedForm/)
+    * [Main document](EnforcedNamedForm/main.md)
+* Argument Labels: [Directory](ArgumentLabels/)
+    * [Main document](ArgumentLabels/main.md)
 
 ## Sources
 There were many sources for discussions, ideas and code snippents, for the reason of sources and possible further ideas for discussions, they are collected here.
