@@ -436,17 +436,53 @@ Nevertheless, on the side of advantages, this method is expected to be pretty ro
 
 In this section different details and moments are collected, that should be noted during the implementation.
 
-#### Minimizing the changes
+#### How to split argument name?
+
+If we are introducing a new identifier, we need to decide, what do we do with the old one, and what --- with the new one. There, naturally, are two possible choices:
+
+1. Leave the existing identifier as a parameter name, and use the new one as an argument label. 
+
+2. Make the new identifier a parameter name, and leave the old one being only an argument label.
+
+In the first case we will have to change the places related to the arguments to parameter mapping , and, possibly, overload resolution (more about it in the following part). Apart from that, we will have to understand, how to put the new name in the compilation artifacts to allow separate compilation of files (again, more about it later).
+
+In the second case, however, we will have to change which names are being passed into various scopes (mainly -- function body scope).
+
+We also need to think, which name will become the member, if used in the primary constructor of a class. Still, it makes sense to declare that the parameter name is the member of the class, when the argument labels used only in the constructor call.
 
 #### Separated compilation
 
+If we want to use argument labels in a library, which then will be compiled and used in a different project, we will have to somehow pass the argument labels to the compilation artifacts.
+
+Currently, Kotlin already passes argument names of parameters (at least to .class files or metadata), but if we are to introduce argument names as a new identifier, we will have to somehow add it into IR and serialization/deserialization processes.
+
+However, the sugar-approach or making the new identifier a parameter name can help avoiding this work.
+
 #### Interoperability with Java
+
+Kotlin has to support interoperability with Java, that means, Kotlin functions can be called from the Java code and vice versa.
+
+How this is related to our work? In fact, not much, as Java do not have any named argument form at all. All the arguments can only be passed in positional form, and this is, probably, due to the fact that Java compilers do not have to always save the argument names to the compiled artifacts. The latter also restricts using named form of Java functions from Kotlin code.
 
 #### Not-JVM backends
 
+We have not really discussed or looked at other backends for Kotlin apart form the JVM one. Still, if the feature is implemented on the sugar level, there should not be such problem. Still, something can probably be thought about the Kotlin/Native platform especially, since it is indeed close to Swift, which has the feature in question.
+
 #### Inheritance
 
+We need to keep in mind, how the labels are being preserved during the interface implementation/function overrides. How different approaches and choices can affect the results? Do we enforce or recommend having the same argument labels or parameter names?
+
+#### Overload resolution
+
+Related to the previous problem and the fact, that in some cases argument names are used in the candidate resolution. Should we change this behaviour so that argument labels are used in this process? Should we introduce any other changes to it?
+
 #### Related diagnostics
+
+The end user of the compiler should be provided with meaningful error message in various new cases related to the usage of argument labels. Do we allow same argument labels? Probably not. Same parameter names? Definitely not. Intersections between argument labels and parameter names? Why not?
+
+Should we warn the user when it tries to use parameter name in the named argument call or directly throw an error? Probably the latter, otherwise we must prohibit intersections between labels and names and/or enforce the same order as in the declaration.
+
+What about usage of labels instead of parameter names inside the function body?
 
 ## Evaluation
 
