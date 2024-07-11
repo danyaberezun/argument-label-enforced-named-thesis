@@ -17,6 +17,7 @@ More specific information regarding the features, discussions and existing proto
     * [Data gathered about the interface overrides with different parameter names](argument-names-override.md)
 * Enforced Named Argument Form: [Directory](EnforcedNamedForm/)
     * [Main document](EnforcedNamedForm/main.md)
+    * [Prototype for the Enforced Named Form feature](https://github.com/MarkTheHopeful/kotlin/tree/enforced-named-proto)
 
 Some additional findings not directly related to either of the features are gathered in the [corresponding document](additional-findings.md).
 
@@ -32,4 +33,7 @@ There were many sources for discussions, ideas and code snippents, for the reaso
 * [Issue KT-8112 (provide syntax for nameless parameters), to suppress warning and IDE quickfix](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)
 * [Issue KTIJ-10594 ("Parameter is never used" quickfix), how this quickfix can render the code invalid](https://youtrack.jetbrains.com/issue/KTIJ-10594)
 * [Issue KT-14934 (Enforce parameter usage only in named form), one of the starting points](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form)
-* Kotlin/Compose team design discussion 2023 (available by request)
+* [Issue KTIJ-1634 (Add inspection for boolean literals passed without named parameters), about an inspection, which motivation is close to such of enforced named form feature](https://youtrack.jetbrains.com/issue/KTIJ-1634)
+* [Issue KTIJ-18880 (Consider more sophisticated inspection...), same as the previous one, but not only for Booleans](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names)
+* [Small topic on enforcing of named arguments](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636)
+* Kotlin/Compose team design discussion 2023 (not available for public repo)
