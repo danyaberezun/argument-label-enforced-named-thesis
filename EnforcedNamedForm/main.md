@@ -148,11 +148,28 @@ This does look like a significant portion of the codebase, and may serve as an a
 
 If, for some reason, a function has unexpected order of arguments, that can lead to confusion and further bugs, especially if some of those parameters have the same type, it might be useful to mark those arguments or the whole function as requiring named argument form. 
 
+#### Accidental trailing lambda
+
+Sometimes one have a function which for some reason has a functional type as its last parameter, but it is not actually supposed to be used as trailing lambda.
+
+One possible example of such can be functions that operate on two or more equally important functions, which all are just parameters, without the specific meaning of a callback, something to be executed directly or anything else, such as the following:
+
+```kotlin
+foo(onSuccess = {...}, onFail = {...})
+groupBy(keySelector = {...}, valueSelector = {...})
+```
+
+It would be confusing to pass one of the functional parameters here as a regular parameter, and the other as a trailing lambda. Therefore it can be useful to prohibit these parameter from being used in the positional form. Perhaps one can mark their function, class or module with a special, `no-trailing-lambda` keyword, annotation or even compilation flag.
+
 ### Possible drawbacks
 
-Another counterpoint: IDEs (IntelliJ IDEA) already highlight argument’s names, so why would we need it?
+#### Additional clutter on the call sites
 
-- Not everyone has this IDE,  for example, when you are reviewing a pull request in GitHub. Or Android Studio.
+Currently most IDEs already highlight argument names when passing them in positional form. If so, then why would one need to write additional code?
+
+There are several counterarguments to this position:
+1. Not everyone has such kind of IDE. One most natural example of such situation is code review in GitHub.
+2. It only works agains the "self-documentation" point. If the prohibition of positional form is being done for a different reason (as with lambdas), the point still holds.
 
 ## Solutions
 
