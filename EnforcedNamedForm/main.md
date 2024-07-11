@@ -37,7 +37,7 @@ Adding a feature to a programming language, especially a big one, requires much 
 Two common reasons between this feature and Argument Labels are already described in the introduction document, even though we still can briefly mention them here:
 
 1. Introduction of enforced named form can enforce explicit indication of the meaning of the arguments passed, especially when the arguments are literals or objects, constructed in place. Such direct indication of meaning makes the code more self-documenting
-2. Changing APIs and libraries under development can benefit from enforcing named form for the arguments that can be affected by changes in future. When all such arguments are passed strictly in named form, they can freely be reordered on the side of the developer without any changes needed from the end user. Apart from that, new parameters with default values could be added to the function, and it would not break the existing calls regardless of place they were added.
+2. Changing APIs and libraries under development can benefit from enforcing named form for the arguments that can be affected by changes in future. When all such arguments are passed strictly in named form, they can freely be reordered on the side of the developer without any changes needed from the end user. Apart from that, new parameters with default values could be added to the function, and it would not break the existing calls regardless of place they were added. Bonus: trailing lambdas are usually the last argument (and positional...), which makes new added arguments to be second-to-last.
 
 More about these reasons can be read back in the introduction document, while here some more specific reasons will be described.
 
@@ -144,7 +144,15 @@ If we are to move to concrete data, GitHub search by file using regular expressi
  
 This does look like a significant portion of the codebase, and may serve as an argument to introduce the Enforced Named Arguments Form.
 
+#### Non-trivial or confusing order of arguments
+
+If, for some reason, a function has unexpected order of arguments, that can lead to confusion and further bugs, especially if some of those parameters have the same type, it might be useful to mark those arguments or the whole function as requiring named argument form. 
+
 ### Possible drawbacks
+
+Another counterpoint: IDEs (IntelliJ IDEA) already highlight argument’s names, so why would we need it?
+
+- Not everyone has this IDE,  for example, when you are reviewing a pull request in GitHub. Or Android Studio.
 
 ## Solutions
 
@@ -196,6 +204,9 @@ buildSomeInstance(false, true)
 
 The problem with this method is that it is an annotation, a mechanism that is (apparently) unreliable and heavily abused to modify the compiler’s behaviour. Moreover, this approach will not work for libraries that want to require consumers to specify the argument names (and want to provide overloads differing only in the names of the arguments; look to the *overload by argument name* section).
 
+#### More inspections
+
+https://youtrack.jetbrains.com/issue/KTIJ-1634
 
 ### Approaches in other languages
 
@@ -229,15 +240,24 @@ If you don’t explicitly specify the argument label, it will be implicitly equa
 
 Named arguments do not have to be passed in specific orders. Named and unnamed arguments can be mixed, but only when the values of all other arguments *can be deduced* from the named ones. That is not always clear. There can be only one variadic argument in a function, but it can be placed at any point of the arguments list, although all arguments after it have to be in a named form. Except for the case, when the last argument is a (lambda) function, which does not have to be named if passed as a trailing lambda
 
+### Things to consider
 
+Modes: positional-only/named-only/mixed/no-trailing-lambda
+
+IDE vs Compiler
+
+Migration levels
+
+Binary compatibility
+
+Argument Objects and data classes (and androidx)
+
+Additional annotations
 
 ### Possible ways to implement
 
 ### Possible technical details
 
-Another counterpoint: IDEs (IntelliJ IDEA) already highlight argument’s names, so why would we need it?
-
-- Not everyone has this IDE,  for example, when you are reviewing a pull request in GitHub. Or Android Studio.
 
 It's worth providing 2 severity levels of message when such parameter is passed in positional form: warning or error. The use case is when you already have a function and you want to make one of its parameters named only. Instead of breaking user code with an error, a warning and a quick fix would gently encourage migrating to that style of argument passing.
 
