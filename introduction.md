@@ -106,6 +106,8 @@ listOf(1, 2, 3, 4).max(**comparator**=naturalOrder, **zero**=0) // meh...
 Suppose the part of the project you are working on is still in development, so its API is still frequently changing. But there are already some uses of the function in the project, and, possibly, not by you, so frequent changes of API are not really favourable. The worst case is when the function you work on is in some part of a library, and the end users use your library and depend on it.
  
 In this situation, different changes, related to the addition/rearranging of function arguments are likely to ruin compatibility, which will require updating every usage, or, if some arguments with the same type were swapped, can even lead to subtle bugs, that will be noticed only sometime after. And all it can happen even if there were not actually any meaningful changes to the parameters that were used.
+
+Therefore, if we are to change a function, we will have to support both the new version and the old one, while marking it as deprecated as to maintain compatibility (perhaps, binary)
  
 But if the end user were **forced to use a named form**, such changes would less likely affect them. The parameters could be rearranged, or there could be new, probably optional parameters added, and the end user would not be disturbed without a reason.
  

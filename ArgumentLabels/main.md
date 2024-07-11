@@ -242,22 +242,43 @@ And the other using brackets for specifying argument labels, while placing them 
 fun send(message: String,
                  port: ValidPort,
                  securityType: SecurityType,
-                 [withDelayBeforeSending] delay: Delay = Delay.DEFAULT_DELAY) { //...
+                 [withDelayBeforeSending] delay: Delay = Delay.DEFAULT_DELAY) { //... }
 ```
+
+It may actually be worth to conclude a poll or a research on which syntax will be more understandable to users, as we have noticed different opinions on this question, regardless the Swift option being the only one already existing in programming languages.
 
 #### Unnamed parameters
 
+We have already menioned the unnamed parameters during the benefits part. Other languages seem to agree on this question: Rust, Swift and Python all use `_` as a special name, marking the parameter as "unused" or "unnamed".
+
+The case with labels can be solved just like that --- one marks the label as `_`, and we then prohibit using it for named arguments (during the argument-parameter mapping, for example).
+
+If we want to mark the internal, parameter names as unused or empty, one will have to, probably, work on preventing them from going into the scope completely. But still, one can freely specify a proper argument label and specify the parameter name as "empty".
+
+#### Argument labels and inheritance
+
+Another point worth noting is how argument labels should behave with inheritance. Should they be inherited and kept the same on overrides, or the user could freely change them? Should an argument "inherit" the label without restating it in function declaration (for example, when we want to specify different parameter name)? What about the other way (specifying only argument label, with parameter name being inherited from the ancestor)?
+
+There was not much discussion on these questions, but a few point could be made, when looking at these questions from the point of already discussed possible benefits and issues:
+
+1. It seems beneficial in most cases to insist on keeping the same argument labels during inheritance while allowing the user to change the parameter names for the purpose of better fitting to the internal context of the function body.
+2. Perhaps it could be useful to actually inherit the label from the ancestor, if we are to require it being the same across all ancestors-inheritors. However, how should it be marked? Currently the position on this in syntax that "if only one identifier is specified, it should serve as both an argument label and a parameter name". 
+3. Maybe the point 1. should be changed in regard of the special, "empty" names, or in situations, when the call through the original, "super-class" is unadvised or prohibited for some reason. Perhaps we want to prohibit using a parameter in named form in the original function, while allowing such behaviour in some of its inheritors.
+
+
+#### Remark: set of questions from the original issue
 - how to specify that a parameter doesn't have an external name and cannot be provided in a named form (Swift: `func foo(_ parameterName)`)
 - how to specify that a parameter does have a different external name, but doesn't have to be provided in a named form only
 - how to require a parameter to be provided in a named form only without duplicating its external name
 - how to make a parameter unnamed internally ([KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)) without spelling its external name if it can be inferred from e.g. a supertype method.
 
+The first one is discussed in the part about unnamed arguments, the second and third are solved by actual separation of argument labels and enforced named form into two separate features. The fourth one is a little bit harder, but some discussions on the point were made in the "Argument labels and inheritance" part.
 
-### Existing implementations
+### Existing solutions
 
-#### Existing solutions in Kotlin
+#### Imitation in Kotlin
 
-#### Approaches in Swift
+#### Approach in Swift
 
 #### Argument Labels in Gleam
 
