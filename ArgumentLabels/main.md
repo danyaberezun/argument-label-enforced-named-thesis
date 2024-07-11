@@ -163,6 +163,36 @@ Some wish to have the ability to have different functions with the same name and
 
 Argument labels, again, can be used to provide such overload, if included in the resolution process. However, it may be quite difficult to implement from the point of Java Virtual Machine.
 
+#### Reusing the name after processing
+
+Suppose you have a function that accepts an object, that needs additional layer of processing from your side, but which is not supposed to be handled or even known by the end user of your function. In this situation, you would have to write something of the following kind:
+
+```kotlin
+fun doHeavyLifting(data: Data) {
+    val processedData: Data = doSomePreprocessing(data)
+    // do other stuff using a new, longer name
+}
+```
+
+The disadvantages of this approach are the following:
+1. The developer has to use a new name, which has to differ from the function parameter and be longer or less comfortable to use
+2. The developer could easily mix `processedData` and `data`, which can result in some hard-to-detect bugs
+
+One can propose in this situation to change the original name into `rawData`, but this can lead to the confusion from the side of the end user of the function.
+
+Argument labels, in fact, can serve as a nice approach to handle this problem:
+
+```kotlin
+fun doHeavyLifting(data rawData: Data) {
+    val data: Data = doSomePreprocessing(rawData)
+    // do other stuff using a short and simple name
+}
+```
+
+Now, with `data` as an argument label, the end user don't see any `raw` prefix, which could lead to a confusing, but the developer sees it and can use the identifier `data` for further use, as argument labels do not go into the function body scope.
+
+One can say, that it can also be solved by introducing mutable arguments, but it requires further discussion on whether it is a good pattern to implement.
+
 ### Possible drawbacks
 
 Along with the possible benefits, one may argue that such feature should not be introduced into Kotlin. Even though it was not a purpose of this document to elaborate on these points, there are still some worth noting.
@@ -536,12 +566,13 @@ Now we should move to the evaluation of the prototypes.
 For the first prototype, the main accent was to make it work at least on simple examples, and it, in fact, did work on them. Top-level functions with argument labels worked correctly, with an exception for functions with variadic arguments, as the needed treatment was not added. Interaction with parameter modifiers (`noinline, crossinline`) was fine, no additional problems were noted. Some basic tests were introduced to the test sets (`fir/analysis-tests/testData/resolve/argumentLabel`). The already present tests without the usage of argument labels were not affected. Additional attention to this prototype was not given. 
 
 For the second prototype, more in-depth testing was concluded, although the commited test set wasn't changed much yet. (Most of the files are still present as local):
-1. Regular behaviour on top level functions, with some arguments having parameter modifiers has been checked, and everything (including variadic arguments) worked.
-2. Class methods
+1. Regular behaviour on top level functions, with some arguments having parameter modifiers has been checked, and everything (including variadic arguments) worked correctly.
+2. Regular behaviour on class methods was checked, with methods having different visibility and various parameter modifiers. It also worked correctly.
 3. Constructors and callable objects
 4. Overrides
 5. Non-unique names
-6. Separate compilation
+6. Trailing lambdas.
+7. Separate compilation
 
 #### Benchmarks
 
