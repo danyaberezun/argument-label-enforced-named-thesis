@@ -322,15 +322,41 @@ On the implementation side, all the arguments are still mapped positionally, but
 
 Named arguments do not have to be passed in specific orders. Named and unnamed arguments can be mixed, but only when the values of all other arguments *can be deduced* from the named ones. That is not always clear. There can be only one variadic argument in a function, but it can be placed at any point of the arguments list, although all arguments after it have to be in a named form. Except for the case, when the last argument is a (lambda) function, which does not have to be named if passed as a trailing lambda
 
-### Possible ways to implement
+### Specific implementation ideas
+
+Now after we moved through the existing implementation, we need to think about which can we actually use for prototype or actual implementation, in regard to their benefits and drawbacks.
+
+#### Runtime annotation
+
+We have already mentioned and discussed already existing annotation which allows to enforce named form for every argument in a function. The direct problem of that specific annotation was that it was compile time, meaning, that this annotation was not preserved in the compilation artifact, which renders the use of the feature for libraries imposisble.
+
+One way to deal with it is just to use runtime annotation and an annotation processor, as they do work in runtime rather than in compile time, which is the idea for this approach --- analyze and rewrite this compile plugin into an annotation processor.
+
+However, there are several downsides to this approach. Firstly, neither compiler plugins nor annotation processors support targets other than JVM, so adding a language feature in such a way will contradict Kotlin's multiplatformness. Secondly, annotations are already heavily overused mechanisms for such purposes, sometimes resulting in the code being less readable, which contradicts the very goal of this work. 
+
+Even though, this approach still can be tried to explore this direction further.
+
+#### Syntactic sugar: variadic argument insertion
+
+Another approach is highly based on the community idea, described in the corresponding part, is to add a separator-like entity in the argument list in function declarations, which will be compared to the variadic pseudo-argument construction we have seen before.
+
+This way, writing something like `nowOnlyNamed` will be more clear than by writing the `vararg _: Nothing}` construction each time we want to introduce parameters with enforced named argument form, indeed enhancing code clarity. Apart from that, this approach seems relatively easy to implement, as it requires a simple transformation of one specific construction to an existing language construction.
+
+Still, even though we have fixed the problems with obscurity of the construction, other problems described earlier still persist, such as situations with functions already containing variadic arguments, usage of prohibited construction and limitation to the "all-after-separator" approach.
+
+#### New keyword(s)
+
+The more regular way to implement this feature is to add a new weak keyword to the Kotlin language, marking a function or an argument of a function as requiring a named form. Due to this keyword being weak, it will not affect parameters that already had the same name as the new keyword, like the existing weak parameter keywords: `vararg`, `noinline` and `crossinline`.
+
+From the internal side, this feature is implemented by adding a boolean field to related nodes of source trees, along with proper changes to initialize those nodes. Apart from adding such flag, we will need to add analysis during the function calls resolution, that will check that all parameters marked with this flag are passed only using named form.
+
+The possible disadvantage of such approach is the requirement to possibly modify many structures and places of initialization of such structures, which may happen to be a great amount of work.
+
+The advantages of it, however, is being just a more clean way to do the initial task, and the possibility to easily extend it to function-level, constructors and other places without significant problems.
 
 ### Possible technical details
 
-
-It's worth providing 2 severity levels of message when such parameter is passed in positional form: warning or error. The use case is when you already have a function and you want to make one of its parameters named only. Instead of breaking user code with an error, a warning and a quick fix would gently encourage migrating to that style of argument passing.
-
-There are related issues for position-based destructing for data classes. “If the way to enforce parameter usage in named form is implemented, then it would be logical to extend it all the way to the data-class restructuring. That is, if constructor parameters' usage is somehow enforced to be in named form, then positional restructuring for those parameters shall be disabled, too.”
-
+This approach raises further questions about how such feature should be implemented with respect to interoperability with Java, which does not support named argument form at all. Possible answers can range from ignoring such modifiers when the functions are being called from Java code, to throwing an error in such calls. In either way, this is not the currect scope of this work.
 
 ## Evaluation
 
@@ -342,8 +368,4 @@ There are related issues for position-based destructing for data classes. “If 
 
 ### Further work
 
-ENF is pretty solid when talking about the passing of literals, but what to do if someone passes a variable with a self-explanatory name?
-
-Things to consider regarding the interaction with [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form) and [KT-9872](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument):
-
-## Results
+### Final results
