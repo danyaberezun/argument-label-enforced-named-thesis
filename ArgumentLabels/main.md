@@ -286,7 +286,9 @@ fun send(message: String,
          withDelayBeforeSending: Delay = Delay.DEFAULT_DELAY as delay) { //... }
 ```
 
-And the other using brackets for specifying argument labels, while placing them in the same place as in Swift:
+However, there are several problems that has to be solved for this syntax: where to add modifiers to such value parameter? Before `withDelayBeforeSending` or before `delay`? If we use it in primary constructors, where do we place `var` and `val`?
+
+The other possible syntax approach uses brackets for specifying argument labels, while placing labels in the same place as in Swift:
 
 ```kotlin
 fun send(message: String,

@@ -199,23 +199,50 @@ Everything starting from the 3. level seems to be overkill, especially in regard
 
 #### Different modes of operation
 
-Modes: positional-only/named-only/mixed/no-trailing-lambda
+Maybe we want to not only introduce one specific keyword to enforce named form for something, but, perhaps, something more, especially since we have several various reasons to use them and simple enforcement on different levels have its disadvantages. The possible proposed modes/enforcement types are following:
+
+1. Named-only: the regular one, enforces the entitiy marked to have all parameters as requiring named argument form. Can be used for functions where all arguments can easily be mixed up, such as functions with `Boolean` arguments, math functions, or many others discussed earlier
+2. Positional-only: the inverse of the previous one, enforces a parameter to be used in the positional form only. Can be used for methods with overloads in case the parameter name was changed in the overload or for functions where positional form is highly unexpected (such as `equals`, operators, infix functions, etc)
+3. Mixed: simple to describe: some parameters can be used in positional form, while for some we want to enforce named form. Examples of such can be seen in functions like `minOf(a, b, comparator, selector)` where `a` and `b` are positional, and `comparator` and `selector` are named. Sounds good, but how to implement it from the design point? Mark the function as "named only" and the first parameters as "unnamed"?
+4. No-trailing-lambda: specific mode which prohibits only trailing lambda for a function, class or more. Targets that one described issue specifically. It maybe useful to apply it for all class or library instead of enforcing each last functional parameter to be named.
+
+Overall, proper support of these modes would require more than one kind of marks. What comes to mind is something of kind "named", "positional" and "any" to not too many marks in one call. Do we really need the third one?
+
+#### Remark: global paradigm shift
+
+Swift programming language, which may be referenced as the source of the initial ideas, enforces named form by default. Maybe we should change the Kotlin paradigm and enforce named argument form as a default? Obviously, with a grace period, way to use unnamed form and, perhaps, some smart way to not enforce the named form when the passed variable has the same name as the parameter it is being passed into.
+
+#### Remark: Synergy with Argument Labels
+
+Both features were initially discussed together, and both are present in Swift, therefore it makes sense that their joined implementation can lead to some additional benefits.
+
+For example, one could say that using an "empty" Argument Label can be counted as specifying this parameter as "positional-only", and providing an actual argument label --- as specifying "named-only". This approach has its own disadvantages (like two different (although related) behaviours linked to one feature and being a complete rip-off of Swift), but still worth investigating.
 
 #### Level of diagnostic 
 
-IDE vs Compiler
+Instead of throwing errors/warnings on the Compiler level, one may instead propose this feature as an IDE warning and inspection. This sounds like a possible approach, but if it will work only in IDE, where parameter names are already highlighted even when one does not write them, the use of this approach seems dubious.
 
 #### Migration levels
 
-Migration levels
+If a library is to introduce the usage of enforced named argument form in its functions, this will affect all the code that uses these functions. How should it affect it?
+
+1. Perhaps errors should be generated, which will break the code using such functions in positional form. This will break the usage, but could possibly increase the adoption speed of the named form. And it could uncover some possible bugs in process.
+2. Perhaps warnings should be generated, which will only report the usage of enf-marked functions or arguments in positional form. This will not break anything, but it seems possible, that many will just ignore such warnings, which effectively nullifies the purpose of the feature.
+3. Combine these two in some way. Maybe leave it on the library developer, who will be able to set a configuration flag on whether to throw error or a warning. Maybe make it suppresible error or warning via compiler flags.
 
 #### Binary compatibility
 
-Binary compatibility
+Another important topic and reason behind this feature (and argument labels) --- trying to preserve binary compatibility during the function evolution. 
 
-Argument Objects and data classes (and androidx)
+Is it possible to achieve with the usage of positional form? How do these named calls are being compiled against library functions? How does function ABI changes when an optional parameter is introduced?
 
-### Existing solutions in Kotlin
+Another approach for it is to move the parameters that are subject to change into an "Argument Object" --- a data class holding the parameters, which can be easily constructed at the call site and deconstructed inside the function. While being a theoretical proposal, it may be further used for ABI instead of ENF and AL. More about this is in its specific document...
+
+### Existing solutions
+
+Before moving to the possible implementation details of our own, we should first try to look at how these features are emulated in Kotlin, if they are, and how they are implemented in other programming languages.
+
+#### Imitations in Kotlin
 
 Additional annotations
 
