@@ -440,14 +440,57 @@ However, additional work was done to introduce the related field into IR tree no
 
 ### Implementation results
 
- This prototype can also be found in its branch in the GitHub repository.\footnote{GitHub: \url{https://github.com/MarkTheHopeful/kotlin/tree/enforced-named-proto}} 
+The described prototype can be found in its branch in the GitHub repository: [Prototype introducing a new keyword](https://github.com/MarkTheHopeful/kotlin/tree/enforced-named-proto)
 
-### Existing problems
+It can be used in the following way:
+
+1. Checkout the needed branch
+2. Run `./gradlew dist`
+3. Use the compiler from `./dist/kotlinc/bin/kotlinc "filename"` to compile the file using the prototype
+
+Now we should move to the evaluation of the prototypes.
+
+#### Tests and behaviour
+
+In this prototype, the changes were more localized, since the parsing stage was affected just slightly and there was only one new field in the ValueParameter structures, so it did not change the behaviour on unrelated tests.
+
+Even though there were multiple failing tests due to the new property, `isENF`, not being initialized by default at some places. Fortunately, this was fixed by locating such places and modifying them accordingly. After this, there were no more new failing tests, which was a success.
+
+Additional tests were created to check that the behaviour is actually enforced with the presence of the keyword, although they currently do not cover all obscure cases. 
+
+Separate compilation was tested separately, and, after modifications, worked.
+
+#### Benchmarks
+
+The prototype was benchmarked on several tests, both with and without the presence of the new feature, and there was not any significant change in the compilation time noticed.
+
+The benchmarks included tests with many (hundreds to thousands) functions with small or large (hundreds) amount of arguments and many function calls. Every test has a version without and with the enforcement of the named form.
+
+#### Existing problems
+
+Even though the prototype worked successfully on tests given, there are still problems, more related to the design of the feature:
+1. As the feature is currently applicable only to arguments, if one wants to mark all the arguments in their function as requiring named form, they will have to put the new keyword to each argument.
+2. Currently it is not prohibited to put the keyword to a variadic argument. This placement will render the function unusable, as variadic arguments cannot be passed in positional form.
 
 ### Further work
 
+Even though this document is a complete report on the research of enforced named argument form, there are still directions to move before the final decision and, if positive, implementation of the feature into the Kotlin programming language.
+
+The three main directions can be summarized in the following list:
+
+1. Make further research on specific design choices, ranging from which report level to use for adaptation, which areas to effect to allow or which types/modes of keywords to include. Additional research on how these features would work on different backends can be made.
+2. Add further improvements to the prototype. Test set can be expanded, additional keywords can be added and behaviour in more specific cases can be checked. Additional diagnostics can be added too.
+3. Try to develop any of the other two ideas for ptototype into a proper prototype to check additional directions of implementation. Maybe it could be useful to add a runtime annotation to check how will it work if implemented as an annotation.
+
 ### Final results
+
+During the work on this issue, many insights and information were gathered from the issues, discussions and other documents, as well as some additional research was concluded, including existing implementations in other languages. Different possible use-cases, benefits and drawbacks were discussed, possible ways of implementations were analyzed, different peculiarities were discovered and recorded. Finally, the prototype was implemented as to prove the concept and allowing for further experiments and research regarding the feature.
 
 ## Additional remarks
 
+Some remarks are not directly related to any of the parts in this document, but still are related to argument labels. Those are described in this part.
+
 ### On variadic arguments in Swift and Kotlin
+
+In Kotlin it is possible to use only one variadic argument per function, while in Swift such limitation was lifted. Why can't we lift it in Kotlin? Probably because of interoperability with Java and the fact that in Java Bytecode the variadic argument always comes last. How does Kotlin deal with it?
+Another fact: Scala, another JVM language actually supports multiple variadic arguments, if they are provided in separate argument lists (another feature of scala, arguments can be separated into groups for partial initialization/evaluation).
