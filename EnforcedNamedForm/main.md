@@ -2,12 +2,12 @@
 
 ## Description
 
-As was stated in the introduction, by the name form of an argument or a named function call we understand an argument passed in the function call with the name of the argument specified. The main idea of the enforced named arguments form feature is to allow developers mark some of the arguments in a function (or perhaps the whole function) as requiring strictly named form.
+As was stated in the introduction, by the named form of an argument or a named function call, we understand an argument passed in the function call with the name of the argument specified. The main idea of the enforced named arguments form feature is to allow developers to mark some of the arguments in a function (or perhaps the whole function) as requiring the named form.
 
 This will require the following modifications to be implemented:
-1. Add a way for a developer to mark an argument or a function (or a class? or a file?) as requiring named form for the function calls (or for specific arguments in these calls).
+1. Add a way for a developer to mark an argument or a function (or a class? or a file?) as requiring the named form for the function calls (or specific arguments in these calls).
 2. Transform this mark into a property of an argument, a function or any other entity
-3. Verify, ensure or check that if an argument is marked as requiring the named form.
+3. Verify, ensure, or check if an argument is marked as requiring the named form.
 
 One possible example of such marking can be achieved by introducing a new parameter keyword (here --- `enf`), as can be seen on the following listing:
 
@@ -20,36 +20,36 @@ callMe(30, enforced=566) // Compiles
 
 ### Discussion history
 
-The discussion firstly recorded in the issue [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form) on the Kotlin Youtrack. At some point the discussion about argument labels was included, but soon after creation it was separated into a dedicated issue (more about that in its corresponding document).
+The discussion was first recorded in the issue [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form) on the Kotlin Youtrack. The discussion about argument labels was included at some point, but soon after creation, it was separated into a dedicated issue (more about that in its corresponding document).
 
-In the beginning, the idea was to allow developers to specify for certain parameters that they should be provided only with arguments in named form, prohibiting the positional usage of such arguments.
+Initially, the idea was to allow developers to specify for specific parameters that they should be provided only with arguments in named form, prohibiting the positional usage of such arguments.
 
-It was stated, that this behaviour will be useful for the parameters, that are not direct input of a function, but rather some options that affect the function behavior, like Boolean flags (for which there is already an [inspection present](https://youtrack.jetbrains.com/issue/KTIJ-1634), and a request for more sophisticated one [exists for three years now](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names)).
+It was stated that this behaviour would be useful for the parameters that are not direct input of a function, but rather some options that affect the function behaviour, like Boolean flags (for which there is already an [inspection present](https://youtrack.jetbrains.com/issue/KTIJ-1634), and a request for more sophisticated one [exists for three years now](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names)).
 
-The initial idea is still present in this work, with some additional ideas to think about, including applying the modifier not only to an argument, but to functions and other units (classes, files...)
+The initial idea is still present in this work, with some additional ideas to consider, including applying the modifier to an argument, functions, and other units (such as classes and files)
 
-There were many further discussions both in the issue (and a few other issues) and in the posts at [Kotlin Discussions](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636) revolving around these features. Several findings and points from them will be present in this document.
+There were many further discussions both in the issue (and a few other issues) and in the posts at [Kotlin Discussions](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636) revolving around these features. Several findings and points from them are present in this document.
 
 ### Possible benefits
 
-Adding a feature to a programming language, especially a big one, requires much work and can lead to significant changes and increased support and attention from the language development team, therefore it needs a proper motivation and requests from the language community, which is the case in this situation.
+Adding a feature to a programming language, especially a big one, requires much work and can lead to significant changes and increased support and attention from the language development team. Therefore, it needs proper motivation and requests from the language community, which is the case in this situation.
 
 Two common reasons between this feature and Argument Labels are already described in the introduction document, even though we still can briefly mention them here:
 
-1. Introduction of enforced named form can enforce explicit indication of the meaning of the arguments passed, especially when the arguments are literals or objects, constructed in place. Such direct indication of meaning makes the code more self-documenting
-2. Changing APIs and libraries under development can benefit from enforcing named form for the arguments that can be affected by changes in future. When all such arguments are passed strictly in named form, they can freely be reordered on the side of the developer without any changes needed from the end user. Apart from that, new parameters with default values could be added to the function, and it would not break the existing calls regardless of place they were added. Bonus: trailing lambdas are usually the last argument (and positional...), which makes new added arguments to be second-to-last.
+1. Introduction of enforced named form can enforce explicit indication of the meaning of the arguments passed, especially when the arguments are literals or objects constructed in place. Such direct indication of meaning makes the code more self-documenting
+2. Changing APIs and libraries under development can benefit from enforcing named form for the arguments that can be affected by changes in future. When all such arguments are passed strictly in named form, they can freely be reordered on the developer's side without any changes needed from the end user. Apart from that, new parameters with default values could be added to the function, and it would not break the existing calls regardless of the place they were added. Bonus: trailing lambdas are usually the last argument (and positional), which makes newly added arguments to be second-to-last.
 
-More about these reasons can be read back in the introduction document, while here some more specific reasons will be described.
+More about these reasons can be read in the introduction document, while more specific reasons are described here.
 
 #### Explicit indication of arguments meaning
 
-Even though this benefit is already partly described in the introduction, it can be useful to restate it once more with more examples and references.
+Even though this benefit is already partly described in the introduction, restating it once more with more examples and references can be helpful.
 
-If a function has many parameters of the same type, especially when this type is primitive, and, even more, when the arguments are passed as constants or objects created at the call site, it becomes easy to mix up different parameters, ultimately resulting in hard-to-detect bugs.
+Suppose a function has many parameters of the same type, especially when this type is primitive and even more when the arguments are passed as constants or objects created at the call site. In that case, it becomes easy to mix up different parameters, ultimately resulting in hard-to-detect bugs.
 
-Easiest to imagine examples of this kind include functions with boolean flags to configure the function’s behavior, or some various numerical parameters being passed to configure or tune function's behaviour.
+Most straightforward examples of this kind include functions with boolean flags to configure the function’s behaviour or various numerical parameters being passed to configure or tune the function's behaviour.
 
-**Enforcing named arguments form** can be used to solve this problem. The developer can mark the function or some of its parameters as requiring a named form and then everyone who will use it will have to specify the names of arguments, explicitly indicating the meaning of passed arguments.
+**Enforcing named arguments form** can be used to solve this problem. The developer can mark the function or some parameters as requiring a named form. Then, everyone using it will have to specify the names of arguments, explicitly indicating the meaning of passed arguments.
 
 The problem is not a new thing, so there are already related solutions as boolean literal inspection (solution to [KTIJ-1634](https://youtrack.jetbrains.com/issue/KTIJ-1634/Add-inspection-for-boolean-literals-passed-without-using-named-parameters-feature)) as well as requests for more in-depth inspections ([KTIJ-18880](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names))
 
@@ -83,7 +83,7 @@ reformat(
 
 Even though the second one looks way more verbose, the meaning of the first one is impossible to understand without looking at the function declaration.
 
-Another couple of examples from real code from a Kotlin machine-learning library, https://github.com/Kotlin/kotlindl:
+Here are another couple of examples from actual code from a Kotlin machine-learning library: [kotlindl](https://github.com/Kotlin/kotlindl):
 
 ```kotlin                                                                                                                                                 
 Conv2D(
@@ -120,15 +120,15 @@ model.use {
 }
 ```
 
-It is quite difficult to find examples of use of these functions without the usage of named form, but if one were to use it, the meaning of the calls and purposes of the arguments would be impossible to guess. So, to prevent it, it makes perfect sense to mark such functions or these parameters as parameters with enforced named argument form.
+It is difficult to find examples of the use of these functions without the usage of named form, but if one were to use it, the meaning of the calls and purposes of the arguments would be impossible to guess. So, to prevent it, it makes perfect sense to mark such functions or these parameters as parameters with enforced named argument form.
 
 #### Remark: some statistics about "bad" function calls
  
-According to the data, obtained via different sources (including search by regexp on GitHub), functions with multiple primitive arguments are widely present in the global codebase. Some of the examples include Android Development, various UI functions, utilities to work with images or canvases and more. 
+According to the data obtained via different sources (including search by regexp on GitHub), functions with multiple primitive arguments are widely present in the global codebase. Examples include Android Development, various UI functions, utilities to work with images or canvases and more. 
 
 Some of the examples are part [of an Android application, responsible for working with a database](https://github.com/GrzegorzDawidek/AndroidZal/blob/e942947fdd01b3191f472cf378e46c6523a93721/app/src/main/java/com/example/sqllitetask/DatabaseHelper.kt), a [simple image utility](https://github.com/2T-T2/ImageUtil/blob/acc3eb444365caf89e014de9747831b0fec9cbe6/src/ImageUtil.kt) and a [small part of a shopping app](https://github.com/jiangyuanyuan/KotlinMall/blob/0e58f238614a4ba2644712ce4190290c9e19bed0/GoodsCenter/src/main/java/com/kotlin/goods/presenter/GoodsDetailPresenter.kt).
  
-While those are definitely not examples of clean and good code, the fact is: that people do write like that, and they do use Kotlin, and, probably, some people even depend on their code. 
+While those are definitely not examples of clean and good code, the fact is that people write like that, and they use Kotlin, and, probably, some people even depend on their code. 
  
 If we are to move to concrete data, GitHub search by file using regular expression, we can get the following numbers:
 
@@ -142,15 +142,15 @@ If we are to move to concrete data, GitHub search by file using regular expressi
 | 6 | 446000 | 89600 |
 | 7 | 267000 | 51500 |
  
-This does look like a significant portion of the codebase, and may serve as an argument to introduce the Enforced Named Arguments Form.
+This does look like a significant portion of the codebase and may serve as an argument for introducing the Enforced Named Arguments Form.
 
 #### Non-trivial or confusing order of arguments
 
-If, for some reason, a function has unexpected order of arguments, that can lead to confusion and further bugs, especially if some of those parameters have the same type, it might be useful to mark those arguments or the whole function as requiring named argument form. 
+If, for some reason, a function has an unexpected order of arguments, that can lead to confusion and further bugs, especially if some of those parameters have the same type, it might be helpful to mark those arguments or the whole function as requiring a named argument form. 
 
 #### Accidental trailing lambda
 
-Sometimes one have a function which for some reason has a functional type as its last parameter, but it is not actually supposed to be used as trailing lambda.
+Sometimes, one has a function that, for some reason, has a functional type as its last parameter, which is not actually supposed to be used as trailing lambda.
 
 One possible example of such can be functions that operate on two or more equally important functions, which all are just parameters, without the specific meaning of a callback, something to be executed directly or anything else, such as the following:
 
@@ -159,17 +159,17 @@ foo(onSuccess = {...}, onFail = {...})
 groupBy(keySelector = {...}, valueSelector = {...})
 ```
 
-It would be confusing to pass one of the functional parameters here as a regular parameter, and the other as a trailing lambda. Therefore it can be useful to prohibit these parameter from being used in the positional form. Perhaps one can mark their function, class or module with a special, `no-trailing-lambda` keyword, annotation or even compilation flag.
+It would be confusing to pass one of the functional parameters here as a regular parameter and the other as a trailing lambda. Therefore, it can be helpful to prohibit this parameter from being used in the positional form. Perhaps one can mark their function, class or module with a special `no-trailing-lambda` keyword, annotation or compilation flag.
 
 ### Possible drawbacks
 
 #### Additional clutter on the call sites
 
-Currently most IDEs already highlight argument names when passing them in positional form. If so, then why would one need to write additional code?
+Currently, most IDEs highlight argument names when passing them in positional form. If so, then why would one need to write additional code?
 
 There are several counterarguments to this position:
-1. Not everyone has such kind of IDE. One most natural example of such situation is code review in GitHub.
-2. It only works agains the "self-documentation" point. If the prohibition of positional form is being done for a different reason (as with lambdas), the point still holds.
+1. Not everyone has such kind of IDE. One most natural example of such a situation is code review in GitHub.
+2. It only works against the "self-documentation" point. The enforcement is still needed if it is done for a different reason (as with lambdas).
 
 ## Ways to implement
 
