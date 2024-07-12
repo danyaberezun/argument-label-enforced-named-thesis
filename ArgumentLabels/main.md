@@ -2,10 +2,10 @@
 
 ## Description
 
-As was stated in the introduction, the main idea of Argument Labels is to separate the identifier, used in the function calls with named arguments (**argument label**) and the identifier, used inside the body of the function (**parameter name**).
+As was stated in the introduction, the main idea of Argument Labels is to separate the identifier used in the function calls with named arguments (**argument label**) and the identifier used inside the body of the function (**parameter name**).
 
 Such separation would require several things to be implemented, including:
-1. A way two specify two separate identifiers (parameter name and argument label) for an argument in function declaration
+1. A way to specify two separate identifiers (parameter name and argument label) for an argument in function declaration
 2. Linking the parameter name to the usages in the function body
 3. Using argument label in the named arguments resolution/mapping.
 
@@ -27,30 +27,30 @@ val d = distance(between = 6, and = 9)
 
 ### Discussion history
 
-Firstly discussed in the same issue as Enforced Named Argument Form, it is currently moved to a separate issue: [KT-34895](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label). 
+Firstly discussed in the same issue as the Enforced Named Argument Form, it is currently moved to a separate issue: [KT-34895](https://youtrack.jetbrains.com/issue/KT-34895/Internal-and-external-name-for-a-parameter-aka-Argument-Label). 
 
-At that point the idea is to allow developers to specify two names for an argument in their functions: external and internal. The external name acts as a use-site name, the one that is seen during the function call using the named form of arguments, and the internal acts as a parameter name, which is used in the body of a function.
+At that point, the idea is to allow developers to specify two names for an argument in their functions: external and internal. The external name acts as a use-site name, the one seen during the function call using the named form of arguments, and the internal acts as a parameter name, which is used in the body of a function.
 
-As one can see, the idea is being preserved in this work, with the external names being argument labels, and internal names being parameter names.
+As one can see, the idea is being preserved in this work, with the external names being argument labels and the internal names being parameter names.
 
-There were many further discussions both in the issue and in the posts at [Kotlin Discussions](discuss.kotlinlang.org) revolving around these features. Several findings and points from them will be present in this document.
+There were many further discussions on the issue, and some posts at [Kotlin Discussions](discuss.kotlinlang.org) revolve around these features. Several findings and points from them will be presented in this document.
 
 ### Possible benefits
 
-Adding a feature to a programming language, especially a big one, requires much work and can lead to significant changes and increased support and attention from the language development team, therefore it needs a proper motivation and requests from the language community, which is the case in this situation.
+Adding a feature to a programming language, especially a big one, requires much work and can lead to significant changes and increased support and attention from the language development team. Therefore, it needs proper motivation and requests from the language community, which is the case in this situation.
 
-Two common reasons between this feature and Enforcing of Named Argument Form are already described in the introduction document, even though we still can briefly mention them here:
+Two common reasons for this feature and the Enforcing of Named Argument Form are already described in the introduction document, even though we still can briefly mention them here:
 
-1. Introduction of argument labels can make the function calls look like sentences of natural language, which makes the code more self-documenting
-2. Changing APIs and libraries under development can benefit from argument labels, as with them one may be able to change the internal name of an argument without the need to change anything in the call sites.
+1. The introduction of argument labels can make the function calls look like sentences of natural language, which makes the code more self-documenting
+2. Changing APIs and libraries under development can benefit from argument labels, as with them, one may be able to change the internal name of an argument without the need to change anything in the call sites.
 
-More about these reasons can be read back in the introduction document, while here some more specific reasons will be described.
+More about these reasons can be read in the introduction document, while more specific reasons are described in the following parts.
 
 #### Different meanings for arguments inside and outside
 
-Sometimes the information that a developer needs to know about an argument differs from information that an end user needs to know. Not necessary that some information should be forgotten, but sometimes different sides need to have accents on different properties of the arguments.
+Sometimes, the information that a developer needs to know about an argument differs from that of an end user. It is not necessary that some information should be forgotten, but sometimes, different sides need to have accents on different properties of the arguments.
 
-One possible example of this situation can be found here, in the situation where it is quite difficult to come up with a meaningful name, that will reflect both sides of the value.
+One possible example of this situation can be found here, in the situation where it is difficult to come up with a meaningful name that will reflect both sides of the value.
 
 ```kotlin
 // Suppose we have a public API for requests
@@ -94,7 +94,7 @@ repo.startRequest(
 )
 ```
 
-It can be seen, that in this example, if we choose to have the parameter named "observeOn", its meaning will be unclear at the point it is being used, but if we choose the name "scheduler", then the purpose of the parameter is being unclear for the one using the function.
+It can be seen that in this example, if we choose to have the parameter named "observeOn", its meaning will be unclear at the point it is being used, but if we choose the name "scheduler", then the purpose of the parameter is being unclear for the one using the function.
 
 
 #### Interface implementation with different argument names
@@ -119,7 +119,7 @@ Currently, this kind of overriding produces the warning:
 The corresponding parameter in the supertype 'WidgetVisitor' is named 'data'. This may cause problems when calling this function with named arguments.
 ```
 
-And indeed, if the names of a parameter in a supertype and subtype differ, it becomes difficult to pass the parameter in the named form. Using the named from the supertype will only be possible when the value is currently in the type of supertype, and same with subtype:
+Indeed, if the names of a parameter in a supertype and subtype differ, it becomes difficult to pass the parameter in the named form. Using the name from the supertype will only be possible when the value is currently in the type of supertype, and the same with the subtype:
 
 ```kotlin
 val a: WidgetVisitor<Unit, Context> = WidgetVisitorImpl(Context())
@@ -131,9 +131,9 @@ b.visit(Widget(), data=Context()) // Does not compile
 b.visit(Widget(), context=Context())
 ```
 
-The second and the third calls, in fact, produce the "Cannot find a parameter with this name: context/data" error.
+The second and the third calls produce the "Cannot find a parameter with this name: context/data" error.
 
-This whole situation can be avoided by introducing argument labels: if one uses argument labels, they will only have to keep the argument labels being the same across the sub/supertypes, while being able to have different parameter names, depending on the implementation:
+This whole situation can be avoided by introducing argument labels. If one uses argument labels, they will only have to keep the argument labels the same across the sub/supertypes while being able to have different parameter names, depending on the implementation:
 
 ```kotlin
 interface WidgetVisitor<R, D> {
@@ -147,25 +147,25 @@ class WidgetVisitorImpl(val context: Context) : WidgetVisitor<Unit, Context> {
 }
 ```
 
-This way, there won't be any problems with calls using named argument form, as they both will use the `data` label, but in the implementation it will be possible to use `context` instead of meaningless in the new context name `data`. 
+This way, there will not be any problems with calls using the named argument form, as they both will use the `data` label, but in the implementation, it will be possible to use `context` instead of meaningless in the new context name `data`. 
 
-Remark: this is not the only possible way to solve this problem. There were several proposed, like [having an special name for unnamed arguments](https://stackoverflow.com/questions/50672203/kotlin-explicitly-unnamed-function-arguments) or [disallowing named form for some arguments](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument), which shows that the problem itself is something people encounter during their work.
+Remark: this is not the only possible way to solve this problem. There were several proposed, like [having a special name for unnamed arguments](https://stackoverflow.com/questions/50672203/kotlin-explicitly-unnamed-function-arguments) or [disallowing named form for some arguments](https://youtrack.jetbrains.com/issue/KT-9872/Disallow-calling-a-method-with-named-argument), which shows that the problem itself is something people encounter during their work.
 
 #### Unused arguments
 
-Highly related to the previous topic, [some ask for syntax for nameless parameters](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters). In the original issue, the motivation is to use "empty" name for unused parameters, catch statemets and situations, where a function accepts a function with specific amount of parameters, as seen in the example in [issue KTIJ-10594](https://youtrack.jetbrains.com/issue/KTIJ-10594).
+Highly related to the previous topic, [some ask for syntax for nameless parameters](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters). In the original issue, the motivation is to use an "empty" name for unused parameters, catch statements and situations where a function accepts a function with a specific amount of parameters, as seen in the example in [issue KTIJ-10594](https://youtrack.jetbrains.com/issue/KTIJ-10594).
 
-With argument labels introduced, empty names can be implemented as either empty (that means, set to a special value, like `_` in Rust, for example) argument labels, if one wants to disallow using named form for a parameter (same method, as in Swift), or empty parameter name, to indicate that it is not being used inside the function body. 
+With argument labels introduced, empty names can be implemented as either empty (that means, set to a special value, like `_` in Rust, for example) argument labels if one wants to disallow using named form for a parameter (same method, as in Swift), or empty parameter name, to indicate that it is not being used inside the function body.
 
 #### Overload by parameter names
 
-Some wish to have the ability to have different functions with the same name and signature, which differ only in the way the arguments are labelled. As mentioned in the issue [KT-43016](https://youtrack.jetbrains.com/issue/KT-43016/Support-method-overloads-on-parameter-names-like-Swift), Swift does have such overload, and, when compiling to Kotlin/Native on iOS with specific annotations, it does work. However, one may think that it is strange to have a feature specific to only one platform. 
+Some wish to have the ability to have different functions with the same name and signature, which differ only in the way the arguments are labelled. As mentioned in the issue [KT-43016](https://youtrack.jetbrains.com/issue/KT-43016/Support-method-overloads-on-parameter-names-like-Swift), Swift does have such overload, and, when compiling to Kotlin/Native on iOS with specific annotations, it does work. However, one may think having a feature specific to only one platform is strange. 
 
-Argument labels, again, can be used to provide such overload, if included in the resolution process. However, it may be quite difficult to implement from the point of Java Virtual Machine.
+Argument labels, again, can be used to provide such overload if included in the resolution process. However, it may be challenging to implement from the point of Java Virtual Machine.
 
 #### Reusing the name after processing
 
-Suppose you have a function that accepts an object, that needs additional layer of processing from your side, but which is not supposed to be handled or even known by the end user of your function. In this situation, you would have to write something of the following kind:
+Suppose a developer has a function that accepts an object that needs an additional layer of processing from the developer's side. Suppose that this layer is also not supposed to be handled or even known by the end user of the function. In this situation, one would have to write something of the following kind:
 
 ```kotlin
 fun doHeavyLifting(data: Data) {
@@ -178,9 +178,9 @@ The disadvantages of this approach are the following:
 1. The developer has to use a new name, which has to differ from the function parameter and be longer or less comfortable to use
 2. The developer could easily mix `processedData` and `data`, which can result in some hard-to-detect bugs
 
-One can propose in this situation to change the original name into `rawData`, but this can lead to the confusion from the side of the end user of the function.
+One can propose changing the original name to `rawData`, but this can lead to confusion from the end user of the function.
 
-Argument labels, in fact, can serve as a nice approach to handle this problem:
+Argument labels can serve as an excellent approach to handle this problem:
 
 ```kotlin
 fun doHeavyLifting(data rawData: Data) {
@@ -189,41 +189,41 @@ fun doHeavyLifting(data rawData: Data) {
 }
 ```
 
-Now, with `data` as an argument label, the end user don't see any `raw` prefix, which could lead to a confusing, but the developer sees it and can use the identifier `data` for further use, as argument labels do not go into the function body scope.
+Now, with `data` as an argument label, the end user does not see any `raw` prefix, which could lead to confusion, but the developer sees it and can use the identifier `data` for further use as an argument label do not go into the function body scope.
 
-One can say, that it can also be solved by introducing mutable arguments, but it requires further discussion on whether it is a good pattern to implement.
+One can say that it can also be solved by introducing mutable arguments, but further discussion is required on whether it is an acceptable pattern to implement.
 
 ### Possible drawbacks
 
-Along with the possible benefits, one may argue that such feature should not be introduced into Kotlin. Even though it was not a purpose of this document to elaborate on these points, there are still some worth noting.
+Along with the possible benefits, one may argue that this feature should not be introduced into Kotlin. Even though it was not the purpose of this document to elaborate on these points, there are still some worth noting.
 
 #### Existance of type aliases
 
-One may say that argument labels can be easily replaced by Kotlin rich type system (and using type aliases). They are already present in the language, they can pass additional information, and one can even make some kind of a "parameter name overload" by using different type aliases.
+One may say that argument labels can be easily replaced by the rich type system of Kotlin (and using type aliases). They are already present in the language, they can pass additional information, and one can even make some kind of a "parameter name overload" by using different type aliases.
 
-The counterargument to this point is that it can turn into creating a new type for every place instead of using primitives, especially in cases where there is no additional logic or limitations on the value passed. Further thoughts can be found in this [reply on forum](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906/12).
+The counterargument to this point is that it can turn into creating a new type for every place instead of using primitives, especially in cases where there is no additional logic or limitations on the value passed. Further thoughts can be found in this [reply on the forum](https://discuss.kotlinlang.org/t/kotlin-internal-and-external-parameter-name-propose/7906/12).
 
 #### Increased confusion in function declaration
 
-With the increased size of function declaration it may be harder to read them. Two identifiers, modifier keyword and a type is already four "words" for just one parameter. And it also can be too easy to mix up which is the argument label and which is the parameter name.
+With the increased size of function declarations, it may be harder to read them. Two identifiers, a modifier keyword and a type, are already four "words" for just one parameter. Furthermore, it can also be too easy to mix up the argument label and the parameter name.
 
-Apart from that, having different names in the function body and in call place can actually be confusing for somebody reading the call and then jumping inside the function body just to find that the argument they were looking at is called something completely different, and the only place with the link between these two is the function declaration.
+Apart from that, having different names in the function body and call place can actually be confusing for somebody reading the call and then jumping inside the function body just to find that the argument they were looking at is called something completely different, while the only place with the link between these two is the function declaration.
 
-However, if one is going to read function body, they will have to read the function declaration, at least to know what the argument types are, for example.
+However, if one is going to read the function body, one will have to read the function declaration, at least to know the argument types, for example.
 
 #### Meaningless labels
 
-Even though it is good that calls may read like language sentences, by further look it becomes difficult to parse the meaning behind the argument with name like `by` or `using`. The type can become the source of information at that point, but then the purpose of argument labels is lost. Full discussion can be found starting at [this reply](https://discuss.kotlinlang.org/t/internal-function-parameter-name/17634/5).
+Even though it is good that calls may read like language sentences, by further look, it becomes difficult to parse the meaning behind the argument with names like `by` or `using`. The type can become the source of information at that point, but then the purpose of argument labels is lost. The complete discussion starts at [this reply](https://discuss.kotlinlang.org/t/internal-function-parameter-name/17634/5).
 
-One can say in response, that the meaning of such arguments can be understood from the context, such as names of values passed, other arguments, name of the function and other. In addition, it is up to user to give names that makes sense. 
+One can say, in response, that the meaning of such arguments can be understood from the context, such as names of values passed, other arguments, name of the function and others. In addition, it is up to the user to give names that make sense. 
 
 #### Remark: perhaps we should change the approach to arguments (Argument Objects)?
 
-There is an idea to use argument objects for situations, where many arguments are passed in function. Argument object in this situation is a simple data class, which contains some arguments of the original function (configuration, for example), and can easily (with some special syntax) be passed in the function call as well as unpacked on the function side without significant overload.
+There is an idea to use argument objects for situations where many arguments are passed in function. The argument object in this situation is a simple data class, which contains some arguments of the original function (configuration, for example) and can easily (with some special syntax) be passed in the function call as well as unpacked on the function side without significant overload.
 
-It is stated that such idea could provide the ABI compatibility for a function with the ability to change the names and order of arguments, by having them in the argument object.
+It is stated that such an idea could provide ABI compatibility for a function with the ability to change the names and order of arguments by having them in the argument object.
 
-More discussions on this point can be found in one of the related documents...
+More discussions about this can be found in documents related to the Argument Object feature.
 
 ## Ways to implement
 
