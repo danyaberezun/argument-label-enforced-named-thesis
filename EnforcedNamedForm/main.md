@@ -238,21 +238,19 @@ Is it possible to achieve with the usage of positional form? How do these named 
 
 Another approach for it is to move the parameters that are subject to change into an "Argument Object" --- a data class holding the parameters, which can be easily constructed at the call site and deconstructed inside the function. While being a theoretical proposal, it may be further used for ABI instead of ENF and AL. More about this is in its specific document...
 
+#### Data class destruction
+
+Quote from the original issue: "The related issues is a position-based destructing for data classes. If the way to enforce parameter usage in named form is implemented, then it would be logical to extend it all the way to the data-classes restructuring. That is, if constructor parameters' usage is somehow enforced to be in named form, then positional restructuring for those parameters shall be disabled, too."
+
 ### Existing solutions
 
 Before moving to the possible implementation details of our own, we should first try to look at how these features are emulated in Kotlin, if they are, and how they are implemented in other programming languages.
 
-#### Imitations in Kotlin
+#### Imitations in Kotlin: Variadic arguments
 
-Additional annotations
+In fact, there is a way to enforce some arguments to be always in named form --- it is the `vararg` keyword. More specifically, every argument after a variadic one must be used in named form.
 
-## Enforcing named form
-
-This part is dedicated to depicting different currently existing ways to implement or work with enforcing the named form of function arguments, split into parts by ways and languages.
-
-## Enforcing named form: Kotlin improvisation
-
-There is a way in Kotlin to make some arguments of a function be always named, but it uses `vararg nothings: Nothig`, which is forbidden (there is a compilation error, which can be suppressed), and it looks weird and takes space for, in a fact, separator.
+That makes a way in Kotlin to make some arguments of a function be always named by using `vararg nothings: Nothing`. Currently such variadic parameter is forbidden (there is a compilation error, which can be suppressed), and it looks weird and takes space for, in a fact, a separator.
 
 ```kotlin
 /* requires passing all arguments by name */
@@ -269,15 +267,13 @@ f1(0, arg1 = 1, arg2 = 2)           // compiles without optional named argument
 
 The example is taken from [stackoverflow](https://stackoverflow.com/questions/37394266/how-can-i-force-calls-to-some-constructors-functions-to-use-named-arguments/37394267#37394267), where the question about the possibility of doing this was initially asked.
 
-This method was discussed in issue [KT-12846](https://youtrack.jetbrains.com/issue/KT-27282/Allow-vararg-parameters-of-type-Nothing), and deemed strange and “looks really like a hack”. The issue was closed in favour of the main, [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form).
+This method was discussed in issue [KT-12846](https://youtrack.jetbrains.com/issue/KT-27282/Allow-vararg-parameters-of-type-Nothing), and deemed strange and “looks really like a hack”. The issue was closed in favour of the original issue for introduction of enforcement of named argument form in Kotlin: [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form).
 
-And, as it can be seen from BigCode query, practically no one uses this approach, at least in the queried codebase:
+Additionally, brief search on GitHub showed that this approach is practically not used among developers.
 
-![Vararg of nothings](VarargNothing.png)
+#### Imitations in Kotlin: Annotation
 
-## Enforcing named form: Kotlin annotation
-
-At some point, the idea and need for it arose again, and it was proposed to imitate this behaviour using annotations, which [were requested](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636/2), and, sometime later, [implemented](https://github.com/chao2zhang/RequireNamedArgument).
+Many things that can be implemented as any kind of a keyword or any other modifier can probably be implemented by using Annotation, either Compile- or Run-time. Same goes with enforced named form: at some point it was proposed to imitate the feature behaviour using annotations, which [were requested](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636/2), and, sometime later, [implemented](https://github.com/chao2zhang/RequireNamedArgument).
 
 ```kotlin
 @NamedArgsOnly
@@ -290,11 +286,11 @@ buildSomeInstance(param1=false, param2=true)
 buildSomeInstance(false, true)
 ```
 
-The problem with this method is that it is an annotation, a mechanism that is (apparently) unreliable and heavily abused to modify the compiler’s behaviour. Moreover, this approach will not work for libraries that want to require consumers to specify the argument names (and want to provide overloads differing only in the names of the arguments; look to the *overload by argument name* section).
+The problem with this method is that it is an annotation, a mechanism that is (apparently) unreliable and heavily abused to modify the compiler’s behaviour. Moreover, this specific annotation is compile-time, and such approach will not work for libraries that want to require consumers to specify the argument names. Perhaps, a run-time annotation will work for this, but the part about heavily-used mechanism remains true.
 
-#### More inspections
+#### Imitations in Kotlin: More inspections
 
-https://youtrack.jetbrains.com/issue/KTIJ-1634
+We have already mentioned the [inspections for Boolean literals (implemented)](https://youtrack.jetbrains.com/issue/KTIJ-1634) and the [one for more sophisticated cases (requested)](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names). Perhaps the whole feature or feature set can be implemented as a set of such inspections? This idea was already discussed in the part "Level of diagnostic", but, briefly: we already have argument names highlighting in IDE, so it would probably be not very useful to ask for argument labels only in the IDE.
 
 ### Approaches in other languages
 

@@ -36,4 +36,5 @@ There were many sources for discussions, ideas and code snippents, for the reaso
 * [Issue KTIJ-1634 (Add inspection for boolean literals passed without named parameters), about an inspection, which motivation is close to such of enforced named form feature](https://youtrack.jetbrains.com/issue/KTIJ-1634)
 * [Issue KTIJ-18880 (Consider more sophisticated inspection...), same as the previous one, but not only for Booleans](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names)
 * [Small topic on enforcing of named arguments](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636)
-* Kotlin/Compose team design discussion 2023 (not available for public repo)
+* [Stackoverflow discussion on vararg Nothing for enforcing named form](https://stackoverflow.com/questions/37394266/how-can-i-force-calls-to-some-constructors-functions-to-use-named-arguments/37394267#37394267)
+* [Issue KT-12846 (Allow vararg parameters of type Nothing), directly related to the previous discussion](https://youtrack.jetbrains.com/issue/KT-27282/Allow-vararg-parameters-of-type-Nothing)
