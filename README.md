@@ -38,3 +38,6 @@ There were many sources for discussions, ideas and code snippents, for the reaso
 * [Small topic on enforcing of named arguments](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636)
 * [Stackoverflow discussion on vararg Nothing for enforcing named form](https://stackoverflow.com/questions/37394266/how-can-i-force-calls-to-some-constructors-functions-to-use-named-arguments/37394267#37394267)
 * [Issue KT-12846 (Allow vararg parameters of type Nothing), directly related to the previous discussion](https://youtrack.jetbrains.com/issue/KT-27282/Allow-vararg-parameters-of-type-Nothing)
+* [Swift documentation on functions, argument labels and their enforced named form](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/functions/)
+* [Discussion on Swift forums about when to use argument labels and the named form itself](https://forums.swift.org/t/when-to-use-argument-labels-a-new-approach/1289)
+

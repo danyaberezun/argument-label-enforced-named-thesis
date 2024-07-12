@@ -292,13 +292,15 @@ The problem with this method is that it is an annotation, a mechanism that is (a
 
 We have already mentioned the [inspections for Boolean literals (implemented)](https://youtrack.jetbrains.com/issue/KTIJ-1634) and the [one for more sophisticated cases (requested)](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names). Perhaps the whole feature or feature set can be implemented as a set of such inspections? This idea was already discussed in the part "Level of diagnostic", but, briefly: we already have argument names highlighting in IDE, so it would probably be not very useful to ask for argument labels only in the IDE.
 
-### Approaches in other languages
+### Abount named form in other languages
 
-## Enforcing named form (and Argument label): Swift
+Currently some of the popular programming languages do not even have the regular named form for passing arguments in a function call, like Java or C++. Still there are some which do have, and among them there is at least one enforcing the usage of named form.
 
-In Swift both of the features are present and, more than that, named form and argument labels are the default, meaning that to pass an argument in the unnamed form you need to specify it in the function declaration. 
+#### Approach in Swift
 
-Example from [Swift documentation](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/functions/):
+Once again --- Swift enforces all arguments to be in the named form by default, and the only way to use an argument in positional form is to specify it as having an empty argument label, which will render it impossible to use this argument in named form.
+
+An example from the [Swift documentation](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/functions/):
 
 ```swift
 func fun(argumentLabel parameterName: Type) {}
@@ -312,15 +314,11 @@ print(greet(person: "Bill", from: "Cupertino"))
 
 There is a long discussion on how and when to use named form (outdated by 8 years, but still why not): [on swift forums](https://forums.swift.org/t/when-to-use-argument-labels-a-new-approach/1289)
 
-### Remark on Swift function arguments
+It is important to notice, that all arguments in Swift **still have fixed positions**, and you cannot change their order, despite them being passed in named form. Perhaps due to this, or due to argument labels being nothing more that separators in this situations, they do not have to be unique, in fact.
 
-There is a way to pass an argument without specifying an argument label: give it an “empty” label (`func test(_ a: Int) {}`).
+On the implementation side, all the arguments are still mapped positionally, but the presence of the argument name is checked (if the argument label for this parameter was not set to "empty".
 
-All arguments in Swift **still have fixed positions**, and you cannot change their order, despite them being uniquely named.
-
-If you don’t explicitly specify the argument label, it will be implicitly equal to the parameter name.
-
-## Other remarks on function arguments in Kotlin
+#### Remark: function arguments in Kotlin
 
 Named arguments do not have to be passed in specific orders. Named and unnamed arguments can be mixed, but only when the values of all other arguments *can be deduced* from the named ones. That is not always clear. There can be only one variadic argument in a function, but it can be placed at any point of the arguments list, although all arguments after it have to be in a named form. Except for the case, when the last argument is a (lambda) function, which does not have to be named if passed as a trailing lambda
 
