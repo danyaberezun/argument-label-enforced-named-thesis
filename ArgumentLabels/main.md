@@ -227,27 +227,27 @@ More discussions about this can be found in documents related to the Argument Ob
 
 ## Ways to implement
 
-After basic introduction and the vision behind why this feature could be implemented (or not), we should move to the discussion about what exactly needs to be implemented, what are the things to be conserned of and how the feature can actually be implemented.
+After a basic introduction and the vision behind why this feature could be implemented (or not), we should discuss what exactly needs to be implemented, what things need to be considered, and how the feature can be implemented.
 
 ### The formal task
 
-By "supporting argument labels feature" we will denote the presence of the following changes to the Kotlin compiler:
+By "supporting argument labels feature", we will denote the presence of the following changes to the Kotlin compiler:
 
 1. The ability and syntax to have two identifiers for an argument in functions, methods and constructors declarations. One of these identifiers will serve as an **argument label**, an external name, and the other will serve as a **parameter name**, an internal name. If only one identifier is specified, it should serve as both.
-2. The parameter name should be added to the scope of the function body, with the corresponding behaviour being similar to the existing argument names. This parameter name should not be visible from the outside of the function body.
-3. The argument label should be used during the mapping of function call arguments to the parameters. The labels should not be visible inside the function body. It is still has to be possible to use different order of named arguments from the one they were specified in the declaration.
+2. The parameter name should be added to the scope of the function body, with the corresponding behaviour being similar to the existing argument names. This parameter name should not be visible outside the function body.
+3. The argument label should be used during the mapping of function call arguments to the parameters. The labels should not be visible inside the function body. It still has to be possible to use a different order of named arguments from the one they are specified in the declaration.
 
 #### Remark: what about lambdas?
 
 We have not mentioned lambdas in the first point. Why?
 
-Turns out, it is currently impossible to use named form of arguments for calls of functional types (such as lambdas). Therefore, if named form is impossible, it is meaningless to add argument labels for lambdas.
+Turns out, it is currently impossible to use named form of arguments for calls of functional types (such as lambdas). Therefore, if the named form is impossible, adding argument labels for lambdas is meaningless.
 
-Another approach would be to allow named form for lambdas, but it will require dealing with harder parsing stage due to the destructuring declaration.
+Another approach would be to allow the named form for lambdas, but it will require dealing with a more complex parsing stage due to the destructuring declaration.
 
 #### Remark: functions, methods and constructors?
 
-Perhaps one may want to include argument labels only to a subset of those mentioned here. Currently we have not found any specific reasons to ignore any of those, with exception of, possibly, constructors, as introduction of argument labels may lead to a slight confusion on what will count as a class member, and what will be used only in the constructor call in named form.
+Perhaps one may want to include argument labels only to a subset of those mentioned here. We have not found any specific reasons to ignore any of those, except constructors, as the introduction of argument labels may lead to slight confusion on what will count as a class member and what will be used only in the constructor call in named form.
 
 ### Things to consider
 
@@ -262,9 +262,9 @@ func greet(person: String, from hometown: String) -> String {
 print(greet(person: "Bill", from: "Cupertino"))
 ```
 
-Here, the argument label `from` is introduced by simply adding an identifier before the parameter name `hometown`. Look how the identifier `person` serves as both an argument label and a parameter name.
+Here, the argument label `from` is introduced by adding an identifier before the parameter name `hometown`. Look at how the identifier `person` serves both as an argument label and a parameter name.
 
-In the past some argued that the Swift approach is not possible to use in Kotlin, as there are already parameter modifiers in this place:
+In the past, some argued that the Swift approach is not possible to use in Kotlin, as there are already parameter modifiers in this place:
 
 ```kotlin
 send(vararg message: String)
@@ -272,23 +272,23 @@ send(noinline message: () -> String)
 send(crossinline message: () -> String)
 ```
 
-However, it appears that those three are the only parameter modifiers present, and that they are parameter keywords (or weak keywords), which means that they are keywords when it is applicable, and if not, they are identifiers. That, in fact, allows us to use the same syntax for Argument labels in Kotlin as in Swift:
+However, it appears that those three are the only parameter modifiers present and are parameter keywords (or weak keywords), meaning that they are keywords when applicable, and if not, they are identifiers. That allows us to use the same syntax for Argument labels in Kotlin as in Swift:
 
 ```kotlin
 fun send(message: String,
          withDelayBeforeSending delay: Delay = Delay.DEFAULT_DELAY) { //... }
 ```
 
-Even though, there were several other approaches proposed, one with using the `as` keyword to specify the parameter name (with argument label taking the place before the type specification):
+Even though there were several other approaches proposed, one using the `as` keyword to specify the parameter name (with the argument label taking place before the type specification):
 
 ```kotlin
 fun send(message: String,
          withDelayBeforeSending: Delay = Delay.DEFAULT_DELAY as delay) { //... }
 ```
 
-However, there are several problems that has to be solved for this syntax: where to add modifiers to such value parameter? Before `withDelayBeforeSending` or before `delay`? If we use it in primary constructors, where do we place `var` and `val`?
+However, there are several problems that have to be solved for this syntax: Where do we add modifiers to such value parameters? Before `withDelayBeforeSending` or before `delay`? If we use it in primary constructors, where do we place `var` and `val`?
 
-The other possible syntax approach uses brackets for specifying argument labels, while placing labels in the same place as in Swift:
+The other possible syntax approach uses brackets for specifying argument labels while placing labels in the same place as in Swift:
 
 ```kotlin
 fun send(message: String,
@@ -297,26 +297,25 @@ fun send(message: String,
                  [withDelayBeforeSending] delay: Delay = Delay.DEFAULT_DELAY) { //... }
 ```
 
-It may actually be worth to conclude a poll or a research on which syntax will be more understandable to users, as we have noticed different opinions on this question, regardless the Swift option being the only one already existing in programming languages.
+It may be worth concluding a poll or research on which syntax will be more understandable to users, as we have noticed different opinions on this question, regardless of the Swift option being the only one already existing in programming languages.
 
 #### Unnamed parameters
 
-We have already menioned the unnamed parameters during the benefits part. Other languages seem to agree on this question: Rust, Swift and Python all use `_` as a special name, marking the parameter as "unused" or "unnamed".
+We have already mentioned the unnamed parameters in the benefits section. Other languages seem to agree on this question: Rust, Swift and Python all use `_` as a special name, marking the parameter as "unused" or "unnamed".
 
 The case with labels can be solved just like that --- one marks the label as `_`, and we then prohibit using it for named arguments (during the argument-parameter mapping, for example).
 
-If we want to mark the internal, parameter names as unused or empty, one will have to, probably, work on preventing them from going into the scope completely. But still, one can freely specify a proper argument label and specify the parameter name as "empty".
+If we want to mark the internal parameter names as unused or empty, one will have to probably work on preventing them from going into the scope completely. However, one can still freely specify a proper argument label and specify the parameter name as "empty".
 
 #### Argument labels and inheritance
 
-Another point worth noting is how argument labels should behave with inheritance. Should they be inherited and kept the same on overrides, or the user could freely change them? Should an argument "inherit" the label without restating it in function declaration (for example, when we want to specify different parameter name)? What about the other way (specifying only argument label, with parameter name being inherited from the ancestor)?
+Another point worth noting is how argument labels should behave with inheritance. Should they be inherited and kept the same on overrides, or could the user freely change them? Should an argument "inherit" the label without restating it in the function declaration (for example, when we want to specify a different parameter name)? What about the other way (specifying only the argument label, with the parameter name being inherited from the ancestor)?
 
-There was not much discussion on these questions, but a few point could be made, when looking at these questions from the point of already discussed possible benefits and issues:
+There was not much discussion on these questions, but a few points could be made when looking at these questions from the point of already discussed possible benefits and issues:
 
-1. It seems beneficial in most cases to insist on keeping the same argument labels during inheritance while allowing the user to change the parameter names for the purpose of better fitting to the internal context of the function body.
-2. Perhaps it could be useful to actually inherit the label from the ancestor, if we are to require it being the same across all ancestors-inheritors. However, how should it be marked? Currently the position on this in syntax that "if only one identifier is specified, it should serve as both an argument label and a parameter name". 
-3. Maybe the point 1. should be changed in regard of the special, "empty" names, or in situations, when the call through the original, "super-class" is unadvised or prohibited for some reason. Perhaps we want to prohibit using a parameter in named form in the original function, while allowing such behaviour in some of its inheritors.
-
+1. It seems beneficial in most cases to insist on keeping the same argument labels during inheritance while allowing the user to change the parameter names for better fitting to the internal context of the function body.
+2. Perhaps it could be helpful to inherit the label from the ancestor if we require it to be the same across all ancestors-inheritors. However, how should it be marked? Currently, the position in syntax is that "if only one identifier is specified, it should serve as both an argument label and a parameter name". 
+3. Maybe point 1. should be changed in regard to the special, "empty" names or in situations when the call through the original "super-class" is unadvised or prohibited for some reason. Perhaps we want to prohibit using a parameter in the named form in the original function while allowing such behaviour in some of its inheritors.
 
 #### Remark: set of questions from the original issue
 - how to specify that a parameter doesn't have an external name and cannot be provided in a named form (Swift: `func foo(_ parameterName)`)
@@ -324,23 +323,23 @@ There was not much discussion on these questions, but a few point could be made,
 - how to require a parameter to be provided in a named form only without duplicating its external name
 - how to make a parameter unnamed internally ([KT-8112](https://youtrack.jetbrains.com/issue/KT-8112/Provide-syntax-for-nameless-parameters)) without spelling its external name if it can be inferred from e.g. a supertype method.
 
-The first one is discussed in the part about unnamed arguments, the second and third are solved by actual separation of argument labels and enforced named form into two separate features. The fourth one is a little bit harder, but some discussions on the point were made in the "Argument labels and inheritance" part.
+The first is discussed in the part about unnamed arguments; the second and third are solved by separating argument labels and enforcing named form into two separate features. The fourth one is harder, but some discussions were made in the "Argument labels and inheritance" part.
 
 ### Existing solutions
 
-Before moving to the possible implementation details of our own, we should first try to look at how these features are emulated in Kotlin, if they are, and how they are implemented in other programming languages.
+Before moving to the possible implementation details of our own, we should first try to look at how these features are emulated in Kotlin if they are, and how they are implemented in other programming languages.
 
 #### Imitations in Kotlin
 
-Surprisingly, there is no actual solution for introducing argument labels in Kotlin present. Perhaps some are providing two functions, one (the external) with the argument labels, and with the sole purpose of it to pass the arguments into the internal function, with the parameter name. Even though, such pattern is not widespread by any means.
+Surprisingly, there is no solution for introducing argument labels in Kotlin present. Perhaps some are providing two functions, one (the external) with the argument labels and with the sole purpose of passing the arguments into the internal function with the parameter name, even though this pattern is not widespread by any means.
 
 #### About named form in other languages
 
-Currently some of the popular programming languages do not even have the regular named form for passing arguments in a function call, like Java or C++. Still there are some which do have, and among them there is a few that have support for argument labels.
+Currently, several popular programming languages do not even have the regular named form for passing arguments in a function call, like Java or C++. Still, some do have, and among them, a few support argument labels.
 
 #### Approach in Swift
 
-We have already seen how Swift supports argument labels from the point of syntax, but let's restate it once more:
+We have already seen how Swift supports argument labels from the point of syntax, but let us restate it once more:
 
 ```swift
 func greet(person: String, from town: String) -> String {
@@ -349,11 +348,11 @@ func greet(person: String, from town: String) -> String {
 print(greet(person: "Bill", from: "Cupertino"))
 ```
 
-As one can see, in Swift it is possible to specify one identifier, which in this case will serve as both argument label and parameter name, but it is also possible to specify them separately. 
+As one can see, in Swift, it is possible to specify one identifier, which will serve as both an argument label and a parameter name. However, it is also possible to specify them separately. 
 
-Two important thing to notice is that the named form in Swift is enforced by default, but despite this, the arguments in function invokation have to be specified in the exact order as in the declaration.
+Two important things to note are that the named form in Swift is enforced by default, but despite this, the arguments in function invocation have to be specified in the exact order as in the declaration.
 
-Another thing in relation to the inheritance (or, in this case, implementation of a "protocol") can be seen from the following example:
+Another thing about the inheritance (or, in this case, implementation of a "protocol") can be seen in the following example:
 
 ```swift
 protocol Consumer {
@@ -367,13 +366,13 @@ class MessageConsumer: Consumer {
 }
 ```
 
-This example of code does not compile due to the following error:
+This example of code does not compile, producing the following error:
 
 ```swift
 error: instance method 'consume(message:)' has different argument labels from those required by protocol 'Consumer' ('consume(input:)')
 ```
 
-That means, instances, overrides and implementations should have the same argument labels as their ancestors. However, only the argument labels have to be the same, parameter names can be changed freely, as shown by the following example:
+That means instances, overrides, and implementations must have the same argument labels as their ancestors. However, only the argument labels have to be the same; parameter names can be changed freely, as shown by the following example:
 
 ```swift
 protocol Consumer {
@@ -387,13 +386,13 @@ class MessageConsumer: Consumer {
 }
 ```
 
-On the implementation side, argument labels are implemented as a proper second name for an argument. The field is present along with the parameter name in the corresponding nodes in syntax tree. It is being checked in the function calls resolution to match the one used in the call, but, due to the arguments having to match the order of the declaration, no intellectual resolution and mapping is being done there.
+On the implementation side, argument labels are implemented as a proper second name for an argument. The field is present along with the parameter name in the corresponding nodes in the syntax tree. It is being checked in the function calls resolution to match the one used in the call. However, due to the arguments having to match the order of the declaration, no intellectual resolution and mapping is being done there.
 
 #### Argument Labels in Gleam
 
 Another language related to our investigation is [Gleam](https://gleam.run/), a new programming language from the creators of Rust. 
 
-Even though it does not forces named form of arguments in any kind, it does introduce labelled arguments.
+Even though it does not force named form of arguments of any kind, it does introduce labelled arguments.
 
 Despite having Rust-like syntax and being compiled into Erlang and Javascript, argument labels are supported in Swift likeness, as one can see on the following listing:
 
@@ -416,8 +415,8 @@ fn calculate(value: Int, add addend: Int, multiply multiplier: Int) {
 
 There are two significant differences from the Swift, however:
 
-1. The labbeled arguments can be used in any order, with the only limitation is that the labelled arguments have to be after the positional ones.
-2. If a label is not specified for an argument, then it can be only used in positional form. 
+1. The labelled arguments can be used in any order, with the only limitation being that the labelled arguments have to be after the positional ones.
+2. If a label is not specified for an argument, then it can only be used in the positional form. 
 
 To understand the second part more, here is the call of the `calculate` function, which does not compile:
 
@@ -431,94 +430,94 @@ It produces the following error:
 Unexpected label: You have already supplied all the labelled arguments that this constructor accepts.
 ```
 
-Even though the 1. is something we already have in Kotlin, the approach by 2. does not seem feasible in our situation, as we have to support the old Kotlin syntax, and, if we are to adopt this part of Gleam likeness, all previous named form usages would be rendered invalid.
+Even though the 1. is something we already have in Kotlin, the approach by 2. does not seem feasible in our situation, as we have to support the old Kotlin syntax, and if we are to adopt this part of Gleam likeness, all previous named form usages would be rendered invalid.
 
 ### Specific implementation ideas
 
-Now after we moved through the existing implementation, we need to think about which can we actually use for prototype or actual implementation, in regard to their benefits and drawbacks.
+Now, after we move through the existing implementation, we need to think about which we can use for prototype or implementation, regarding their benefits and drawbacks.
 
 #### Syntactic sugar: jumper function
 
 One of the more primitive approaches is to implement this feature as a syntactic sugar via splitting the initial function with argument labels into two.
 
-First, we do the parsing as usual, but with allowance for two identifiers for a parameter by a slight change in the related function. Second, during the transformation of the parsed code source tree (PSI or lightTree) into FIR, we check whether a function has argument labels in any of its arguments. And then, is those are present, instead of regular processing of such functions, we generate two new functions as follows:
+First, we do the parsing as usual, but with allowance for two identifiers for a parameter by a slight change in the related function. Second, when transforming the parsed code source tree (PSI or lightTree) into FIR, we check whether a function has argument labels in any of its arguments. And then, if those are present, instead of regular processing of such functions, we generate two new functions as follows:
 
 1. The first one will be denoted as the external one. It will have the name of the original function, and the parameter names will be set to the function's argument labels, but the body will be replaced with the call to the internal function, with all the received parameters being simply passed to the internal call
 
-2. The second one will be denoted as the internal one. Its name will be the original name with some internal suffix added, hiding it from the user. Its parameters will be the parameter names of the original function, and its body will be the body of the original function.
+2. The second one will be denoted as the internal one. It will be the original name with some internal suffix added, hiding it from the user. Its parameters will be the parameter names of the original function, and its body will be the body of the original function.
 
-These functions will be generated during the desugaring stage, and then the compilation will follow as usual. The original function will not be generated in this case (therefore, there will be only two new functions, the internal one and the external one). If a function does not contain argument labels, its transformation will not be affected in any way.
+These functions will be generated during the desugaring stage, and then the compilation will follow as usual. In this case, the original function will not be generated (therefore, there will be only two new functions, the internal and external ones). If a function does not contain argument labels, its transformation will not be affected in any way.
 
-The main disadvantage of this approach is that it creates additional functions, therefore decreasing both the compilation and execution times, among with increased size of the resulting artifact. 
+The main disadvantage of this approach is that it creates additional functions, therefore decreasing both the compilation and execution times, with the increased size of the resulting artifact. 
 
-The advantage is that being syntactic sugar, this approach can be much easier to implement than the first one. Apart from that, by generating the functions on early stages, we do not have to worry about platform compatibility, as the backend receives these functions as regular functions like they were written by a user, despite having the new feature in the syntax.
+The advantage is that this approach can be much easier to implement than the first because it is a syntactic sugar. Apart from that, by generating the functions in the early stages, we do not have to worry about platform compatibility, as the backend receives these functions as regular functions like they were written by a user, despite having the new feature in the syntax.
 
 There are more additional things to worry about in this approach, however: 
 
-1. Variadic arguments have to be handled in a special way (add a spread operation), which additionaly increases the overhead.
-2. For each method in a class, there will be additional method generated, so we will have to keep track of all the method modifiers.
-3. "Internal" methods will still be accesible through reflections
-4. Primary constructors will also require additional handling, for example, the primary constructor could be just delegating the behaviour to the secondary. Still, that would require additional thoughts.
+1. Variadic arguments must be handled specially (add a spread operator), increasing the overhead.
+2. For each method in a class, an additional method will be generated, so we will have to keep track of all the method modifiers.
+3. "Internal" methods will still be accessible through reflections
+4. Primary constructors will also require additional handling; for example, the primary constructor could just delegate the behaviour to the secondary. Still, that would require additional thoughts.
 
 #### New field for argument label
 
-As an argument label is, essentially, just an additional name for a function argument, it naturally comes that one of the possible ways to implement this feature is to simply add this new field to related structures, just like it is done in the Swift programming language. All structures holding the `ValueParameter` on various levels, from parser and PSI to FIR and, probably, IR, will be affected by this addition. Apart from that, some additional changes would need to be done during the resolution stages (specifically, argument-parameter mapping), as the new names will have to be considered during either the call using the named form or inside the function body.
+As an argument label is, essentially, just an additional name for a function argument, it naturally comes that one of the possible ways to implement this feature is to simply add this new field to related structures, just like it is done in the Swift programming language. All structures holding the `ValueParameter` on various levels, from parser and PSI to FIR and, probably, IR, will be affected by this addition. Apart from that, some additional changes would need to be made during the resolution stages (specifically, argument-parameter mapping), as the new names will have to be considered during the call using either the named form or inside the function body.
 
-The main disadvantage of this approach is that it requires adding changes to many different classes and, in the worst-case scenario, checking every existing creation of related classes in the vast code base of the Kotlin compiler, along with passing the new name down to platform-dependent code. Such work can be overwhelming for the first prototype to implement, and the amount of work required is not easy to estimate.
+The main disadvantage of this approach is that it requires adding changes to many different classes and, in the worst-case scenario, checking every existing creation of related classes in the vast code base of the Kotlin compiler, along with passing the new name down to platform-dependent code. Such work can be overwhelming for the prototype to implement, and the required work is not easy to estimate.
 
 Nevertheless, on the side of advantages, this method is expected to be pretty robust, as it just adds a new name without any additional duplication. Apart from that, it should work in many different cases initially not discussed but logically related, such as class constructors and methods.
 
 ### Possible technical details
 
-In this section different details and moments are collected, that should be noted during the implementation.
+This section collects different details and moments that should be noted during the implementation.
 
 #### How to split argument name?
 
-If we are introducing a new identifier, we need to decide, what do we do with the old one, and what --- with the new one. There, naturally, are two possible choices:
+If we are introducing a new identifier, we need to decide what we do with the old one and what --- with the new one. There, naturally, are two possible choices:
 
-1. Leave the existing identifier as a parameter name, and use the new one as an argument label. 
+1. Leave the existing identifier as a parameter name and use the new one as an argument label. 
 
-2. Make the new identifier a parameter name, and leave the old one being only an argument label.
+2. Make the new identifier a parameter name and leave the old one to be just an argument label.
 
-In the first case we will have to change the places related to the arguments to parameter mapping , and, possibly, overload resolution (more about it in the following part). Apart from that, we will have to understand, how to put the new name in the compilation artifacts to allow separate compilation of files (again, more about it later).
+In the first case, we will have to change the places related to the arguments to parameter mapping and, possibly, overload resolution (more about it in the following part). Apart from that, we will have to understand how to put the new name in the compilation artifacts to allow separate compilation of files (again, more about it later).
 
-In the second case, however, we will have to change which names are being passed into various scopes (mainly -- function body scope).
+In the second case, however, we must change which names are being passed into various scopes (mainly -- function body scope).
 
-We also need to think, which name will become the member, if used in the primary constructor of a class. Still, it makes sense to declare that the parameter name is the member of the class, when the argument labels used only in the constructor call.
+We also need to think about which name will become the member if used as a class's primary constructor. Still, it makes sense to declare that the parameter name is a member of the class when the argument labels are used only in the constructor call.
 
 #### Separated compilation
 
-If we want to use argument labels in a library, which then will be compiled and used in a different project, we will have to somehow pass the argument labels to the compilation artifacts.
+If we want to use argument labels in a library, which will be compiled and used in a different project, we will have to pass the argument labels to the compilation artifacts.
 
-Currently, Kotlin already passes argument names of parameters (at least to .class files or metadata), but if we are to introduce argument names as a new identifier, we will have to somehow add it into IR and serialization/deserialization processes.
+Currently, Kotlin already passes argument names of parameters (at least to .class files or metadata). However, if we are to introduce argument names as a new identifier, we will have to somehow add it into IR and serialization/deserialization processes.
 
-However, the sugar-approach or making the new identifier a parameter name can help avoiding this work.
+However, the "sugar" approach or making the new identifier a parameter name can help avoid this work.
 
 #### Interoperability with Java
 
-Kotlin has to support interoperability with Java, that means, Kotlin functions can be called from the Java code and vice versa.
+Kotlin has to support interoperability with Java, which means Kotlin functions can be called from the Java code and vice versa.
 
-How this is related to our work? In fact, not much, as Java do not have any named argument form at all. All the arguments can only be passed in positional form, and this is, probably, due to the fact that Java compilers do not have to always save the argument names to the compiled artifacts. The latter also restricts using named form of Java functions from Kotlin code.
+How is this related to our work? Not much, as Java does not have any named argument form. All the arguments can only be passed in positional form, which is probably because Java compilers do not always have to save the argument names to the compiled artifacts. The latter also restricts using named form of Java functions from Kotlin code.
 
 #### Not-JVM backends
 
-We have not really discussed or looked at other backends for Kotlin apart form the JVM one. Still, if the feature is implemented on the sugar level, there should not be such problem. Still, something can probably be thought about the Kotlin/Native platform especially, since it is indeed close to Swift, which has the feature in question.
+We have not deeply discussed or looked at other backends for Kotlin apart from the JVM one. Still, if the feature is implemented on the sugar level, there should not be such a problem. Still, something can probably be thought about the Kotlin/Native platform, especially since it is indeed close to Swift, which has the feature in question.
 
 #### Inheritance
 
-We need to keep in mind, how the labels are being preserved during the interface implementation/function overrides. How different approaches and choices can affect the results? Do we enforce or recommend having the same argument labels or parameter names?
+We need to understand how the labels are preserved during the interface implementation/function overrides. How can different approaches and choices affect the results? Do we enforce or recommend having the same argument labels or parameter names?
 
 #### Overload resolution
 
-Related to the previous problem and the fact, that in some cases argument names are used in the candidate resolution. Should we change this behaviour so that argument labels are used in this process? Should we introduce any other changes to it?
+Related to the previous problem, argument names are used in the candidate resolution in some cases. Should we change this behaviour so that argument labels are used in this process? Should we introduce any other changes to it?
 
 #### Related diagnostics
 
-The end user of the compiler should be provided with meaningful error message in various new cases related to the usage of argument labels. Do we allow same argument labels? Probably not. Same parameter names? Definitely not. Intersections between argument labels and parameter names? Why not?
+The end user of the compiler should be provided with meaningful error messages in various new cases related to using argument labels. Do we allow non-unique argument labels? Probably not. Same parameter names? Not. Intersections between argument labels and parameter names? Why not?
 
-Should we warn the user when it tries to use parameter name in the named argument call or directly throw an error? Probably the latter, otherwise we must prohibit intersections between labels and names and/or enforce the same order as in the declaration.
+Should we warn the user when it tries to use the parameter name in the named argument call or directly throw an error? Probably the latter; otherwise, we must prohibit intersections between labels and names and/or enforce the same order as in the declaration.
 
-What about usage of labels instead of parameter names inside the function body?
+What about using labels instead of parameter names inside the function body?
 
 ## Evaluation
 
