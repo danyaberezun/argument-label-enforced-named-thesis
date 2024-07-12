@@ -403,21 +403,21 @@ Also, should we add other diagnostics for impossible specification of "forced na
 
 ## Evaluation
 
-To test some the ideas described, collect additional findings and have a starting point for possible further implementations, the prototype for the enforced named arguments form feature was developed.
+The prototype for the enforced named arguments form feature was developed to test some ideas, collect additional findings, and provide a starting point for possible further implementations.
 
-A prototype here is a version of a Kotlin compiler, with modifications made to support the new feature. The feature can possibly be covered by tests and different benchmarks in the prototype, but still have poor code quality and/or questionable design choices. Apart from that, it may not work or be untested for some specific cases, which are mostly noted in the corresponding part.
+A prototype here is a version of a Kotlin compiler with modifications made to support the new feature. The feature can be covered by tests and different benchmarks in the prototype, but it can have poor code quality and/or questionable design choices. It may not work or be untested for some specific cases, which are primarily noted in the corresponding part.
 
 ### Prototypes implemented
 
-It was decided, that annotations is not a scope of our work for that moment, and the idea with inserting variadic arguments seems to be too hacky to implement, therefore we decided to go on with the prototype with a new keyword. For now we decided to add only a keyword to enforce the named form of arguments, applicable to arguments, but this behaviour can easily be extended. Here we will provide the details for the implementation.
+It was decided that annotations were not a scope of our work for that moment, and the idea of inserting variadic arguments seemed to be too hacky to implement. Therefore, we decided to go on with the prototype with a new keyword. We decided to add only a keyword to enforce the named form of arguments, applicable to arguments, but this behaviour can easily be extended. Here, we will provide the details for the implementation.
 
 #### Via new keyword
 
 As we decided to introduce a new soft keyword, the work affected parsing, then the FIR node for value parameters, and then --- the process of function call resolution, namely the mapping of call arguments to function parameters. 
 
-For the parsing stage, we needed to add a new soft keyword and make it applicable to function parameters, making it a modifier keyword. The keyword was integrated into the parser smoothly, as there already were keywords that act as parameter modifiers, such as `vararg` and `noinline`. Therefore, this part of the task was to add our new keyword, `enf`, to the others. 
+For the parsing stage, we needed to add a new soft keyword and make it applicable to function parameters, making it a modifier keyword. The keyword was integrated into the parser smoothly, as keywords already act as parameter modifiers, such as `vararg` and `noinline`. Therefore, this part of the task was to add our new keyword, `enf`, to the others. 
 
-On the listing here one can see how the introduced keyword looks in use:
+On the listing here, one can see how the introduced keyword looks in use:
 
 ```kotlin
 fun callMe(regular: Int, enf other: Int) {}
@@ -426,71 +426,71 @@ callMe(30, 566) // Compilation error
 callMe(30, other=566) // Compiles
 ```
 
-After the parser modification, the next step was to add the corresponding boolean field indicating the enforcement, `isENF`, to the class for FIR node responsible for storing a function parameter, namely `FirValueParameter`. 
+After the parser modification, the next step was to add the corresponding boolean field indicating the enforcement, `isENF`, to the class for the FIR node responsible for storing a function parameter, namely `FirValueParameter`. 
 
-With the modifier being parsed and its presence indicated in the FIR node, the remaining task was to add the logic for it ~--- if an argument is being passed to a parameter with this flag, a diagnostic, that means a proper message with the place and the reason for the error, must be generated, which results in a compilation error. The file responsible for related logic is `FirArgumentsToParameterMapper.kt`, so the corresponding check was implemented there. 
+With the modifier being parsed and its presence indicated in the FIR node, the remaining task was to add the logic for it ~--- if an argument is being passed to a parameter with this flag, a diagnostic, that means a proper message with the place and the reason for the error, must be generated, which results in a compilation error. The file for related logic is `FirArgumentsToParameterMapper.kt`, so the corresponding check was implemented there. 
 
-After it, we only needed to add the diagnostic to produce there in case the named form is violated.
+After that, we only needed to add the diagnostic to produce there in case the named form was violated.
 
-#### Remark: on the additional modification done later
+#### Remark: on the additional modification
 
-One can notice, that this implementation does not mention IR or serialization in any way. The initial implementation does not affected them, and, therefore, was not propagated into IR or .class, resulting in the modifier being lost after the compilation is done, which rendered the feature useless for separate compilation.
+One can notice that this implementation does not mention IR or serialization. The initial implementation did not affect them and, therefore, was not propagated into IR or .class, resulting in the modifier being lost after the compilation, rendering the feature useless for separate compilation.
 
-However, additional work was done to introduce the related field into IR tree node, with the serialization added likewise to the existing parameter modifiers (`noinline` for example). Even though large amount of files needed to be changed to reflect the update (75!), in the end the serialization and deserialization were working fine.
+However, additional work was done to introduce the related field into the IR tree node, with the serialization added likewise to the existing parameter modifiers (`noinline`, for example). Even though a large number of files needed to be changed to reflect the update (75!), in the end, the serialization and deserialization were working fine.
 
 ### Implementation results
 
-The described prototype can be found in its branch in the GitHub repository: [Prototype introducing a new keyword](https://github.com/MarkTheHopeful/kotlin/tree/enforced-named-proto)
+The described prototype can be found in its branch in the GitHub repository: [prototype introducing a new keyword](https://github.com/MarkTheHopeful/kotlin/tree/enforced-named-proto)
 
-It can be used in the following way:
+It can be used in the following ways:
 
 1. Checkout the needed branch
 2. Run `./gradlew dist`
 3. Use the compiler from `./dist/kotlinc/bin/kotlinc "filename"` to compile the file using the prototype
 
-Now we should move to the evaluation of the prototypes.
+Now, we should move to the evaluation of the prototypes.
 
 #### Tests and behaviour
 
-In this prototype, the changes were more localized, since the parsing stage was affected just slightly and there was only one new field in the ValueParameter structures, so it did not change the behaviour on unrelated tests.
+In this prototype, the changes were more localized since the parsing stage was affected just slightly, and there was only one new field in the ValueParameter structures, so it did not change the behaviour on unrelated tests.
 
-Even though there were multiple failing tests due to the new property, `isENF`, not being initialized by default at some places. Fortunately, this was fixed by locating such places and modifying them accordingly. After this, there were no more new failing tests, which was a success.
+Even though there were multiple failing tests due to the new property, `isENF`, not being initialized by default in some places. Fortunately, this was fixed by locating such places and modifying them accordingly. After this, there were no more new failing tests, which was a success.
 
-Additional tests were created to check that the behaviour is actually enforced with the presence of the keyword, although they currently do not cover all obscure cases. 
+Additional tests were created to check that the behaviour is enforced with the presence of the keyword, although they currently do not cover all obscure cases. 
 
-Separate compilation was tested separately, and, after modifications, worked.
+Separate compilation was tested separately and, after the modification mentioned earlier, worked correctly.
 
 #### Benchmarks
 
-The prototype was benchmarked on several tests, both with and without the presence of the new feature, and there was not any significant change in the compilation time noticed.
+The prototype was benchmarked on several tests, both with and without the presence of the new feature, and no significant change in the compilation time was noticed.
 
-The benchmarks included tests with many (hundreds to thousands) functions with small or large (hundreds) amount of arguments and many function calls. Every test has a version without and with the enforcement of the named form.
+The benchmarks included tests with many (hundreds to thousands) functions with small or large (hundreds) amounts of arguments and many function calls. Every test has a version without and with the enforcement of the named form.
 
 #### Existing problems
 
 Even though the prototype worked successfully on tests given, there are still problems, more related to the design of the feature:
-1. As the feature is currently applicable only to arguments, if one wants to mark all the arguments in their function as requiring named form, they will have to put the new keyword to each argument.
-2. Currently it is not prohibited to put the keyword to a variadic argument. This placement will render the function unusable, as variadic arguments cannot be passed in positional form.
+1. As the feature currently applies only to arguments, if one wants to mark all the arguments in their function as requiring the named form, they will have to put the new keyword to each argument.
+2. Putting the keyword to a variadic argument is not prohibited. This placement will render the function unusable, as variadic arguments cannot be passed in positional form.
 
 ### Further work
 
-Even though this document is a complete report on the research of enforced named argument form, there are still directions to move before the final decision and, if positive, implementation of the feature into the Kotlin programming language.
+Even though this document is a complete report on the research of enforced named argument form, there are still directions to move before the final decision and, if positive, implementing the feature into the Kotlin programming language.
 
 The three main directions can be summarized in the following list:
 
-1. Make further research on specific design choices, ranging from which report level to use for adaptation, which areas to effect to allow or which types/modes of keywords to include. Additional research on how these features would work on different backends can be made.
-2. Add further improvements to the prototype. Test set can be expanded, additional keywords can be added and behaviour in more specific cases can be checked. Additional diagnostics can be added too.
-3. Try to develop any of the other two ideas for ptototype into a proper prototype to check additional directions of implementation. Maybe it could be useful to add a runtime annotation to check how will it work if implemented as an annotation.
+1. Conduct further research on specific design choices, ranging from which report level to use for adaptation, which areas to effect to allow, and which types/modes of keywords to include. Additional research can be done on how these features would work on different backends.
+2. Add further improvements to the prototype. The test set can be expanded, additional keywords can be added, and behaviour in more specific cases can be checked. Additional diagnostics can be added, too.
+3. To check additional implementation directions, try to develop any of the other two ideas into a proper prototype. Maybe adding a runtime annotation could be useful to check how the feature would work if implemented as an annotation.
 
 ### Final results
 
-During the work on this issue, many insights and information were gathered from the issues, discussions and other documents, as well as some additional research was concluded, including existing implementations in other languages. Different possible use-cases, benefits and drawbacks were discussed, possible ways of implementations were analyzed, different peculiarities were discovered and recorded. Finally, the prototype was implemented as to prove the concept and allowing for further experiments and research regarding the feature.
+During the work on this issue, many insights and information were gathered from the issues, discussions, and other documents, and some additional research was concluded, including existing implementations in other languages. Different possible use cases, benefits and drawbacks were discussed, possible ways of implementation were analyzed, and different peculiarities were discovered and recorded. Finally, the prototype was implemented to prove the concept and allow for further experiments and research regarding the feature.
 
 ## Additional remarks
 
-Some remarks are not directly related to any of the parts in this document, but still are related to argument labels. Those are described in this part.
+Some remarks are not directly related to this document's parts but are still related to the enforced argument named form feature. Those are described in this part.
 
 ### On variadic arguments in Swift and Kotlin
 
-In Kotlin it is possible to use only one variadic argument per function, while in Swift such limitation was lifted. Why can't we lift it in Kotlin? Probably because of interoperability with Java and the fact that in Java Bytecode the variadic argument always comes last. How does Kotlin deal with it?
-Another fact: Scala, another JVM language actually supports multiple variadic arguments, if they are provided in separate argument lists (another feature of scala, arguments can be separated into groups for partial initialization/evaluation).
+In Kotlin, it is possible to use only one variadic argument per function, while in Swift, such limitation was lifted. Why can't we lift it in Kotlin? Probably because of interoperability with Java and the fact that the variadic argument always comes last in Java Bytecode. How does Kotlin deal with it?
+Another fact: Scala, another JVM language, supports multiple variadic arguments if they are provided in separate argument lists (another feature of Scala is that arguments can be separated into groups for partial initialization/evaluation).
