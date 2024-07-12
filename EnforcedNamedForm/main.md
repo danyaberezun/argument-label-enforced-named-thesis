@@ -173,70 +173,70 @@ There are several counterarguments to this position:
 
 ## Ways to implement
 
-After basic introduction and the vision behind why this feature could be implemented (or not), we should move to the discussion about what exactly needs to be implemented, what are the things to be conserned of and how the feature can actually be implemented.
+After a basic introduction and the vision behind why this feature could be implemented (or not), we should discuss what needs to be implemented, what things need to be considered, and how the feature can be implemented.
 
 ### The formal task
 
-By "adding a way to enforce named argument form" we will denote the presence of the following changes to the Kotlin compiler:
+By "adding a way to enforce named argument form", we will denote the presence of the following changes to the Kotlin compiler:
 
-1. The syntax to mark a parameter, a function, a class or a whole file as requiring named form of arguments for function calls of/in the marked declarations. If such "mark" is not present, the behaviour should not be affected. The arguments affected by it will be referred here as "requiring named form".
-2. During the argument to parameter mapping, if an argument requires named form and is currently being passed in the call using positional form, a warning or an error should be produced.
+1. The syntax to mark a parameter, a function, a class or a whole file as requiring the named form of arguments for function calls of/in the marked declarations. The behaviour should not be affected if such a "mark" is absent. The arguments it affects will be referred to here as "requiring named form".
+2. During the argument to parameter mapping, if an argument requires the named form and is currently being passed in the call using the positional form, a warning or an error should be produced.
 
 ### Things to consider
 
 #### Different areas of effect
 
-It was already mentioned several times, that we may want to enforce named arguments form for different entities on different levels, from more specific to global:
+It was already mentioned several times that we might want to enforce named arguments form for different entities on different levels, from more specific to global:
 
-1. Mark a specific argument as requiring named form. Simple, concise, point-wise. Blows up the size of declaration, if you want more that one or two arguments to have this property
-2. Mark all arguments starting from a specific one as requiring named form. Works well if you have a large "tail" of optional parameters for configuration. Can lead to confusion, as one will somehow need to place a "separator" which will not be related to a specific parameter by itself, but rather to a range of parameters. (One can say that you'll only need to put the mark on the first such parameter, but since in Kotlin one can mix named and positional arguments, this is not going to work)
-3. Mark a function as requring a named form. Also simple, all the arguments of such function will require named form. Same as 2., but without the inconsistency about the modifier being put somewhere in the middle. Has problems when you might actually keep some arguments in positional form, like the first one (which often is the direct object of the function).
-4. Mark a whole class as requring a named form. If you decided that in a class you will mark all functions as requring a named form, or you are a Swift enjoyer, you may want to enforce named form in each its method. Has the same problem as the 3., but in addition users may forget about the modifier being present somewhere in the beginning of the class.
-5. Mark the whole file. No comments here, basically the same as the previous point.
-6. Mark the whole project as using strictly named form. May actually be useful if you are working on a library, which can still be in development, or you want to enforce this specific codestyle in your project on the compiler-level.
+1. Mark a specific argument as requiring the named form. Simple, concise, and point-wise. It blows up the size of the declaration if one wants more than one or two arguments to have this property
+2. Mark all arguments starting from a specific one requiring a named form. It works well if a function has a large "tail" of optional parameters for configuration. This choice can lead to confusion, as one will somehow need to place a "separator", which will not be related to a specific parameter by itself but rather to a range of parameters. (One can say that one will only need to put the mark on the first such parameter, but since in Kotlin, one can mix named and positional arguments, this is not going to work)
+3. Mark a function as requiring a named form. Also simple, all the arguments of such a function will require the named form. It is the same as 2., but without the inconsistency about the modifier being put somewhere in the middle. It has problems when one might want to keep some arguments in positional form, like the first one (which is often the function's direct object).
+4. Mark a whole class as requiring a named form. If one decides that in a class, one will mark all functions as requiring the named form or wants to write the code in Swift style, one may want to enforce a named form in each method. It has the same problem as the 3., but in addition, users may forget about the modifier being present somewhere at the beginning of the class.
+5. Mark the whole file — no additional comments here, basically the same as the previous point.
+6. Mark the whole project using the named form. It may be helpful if one is working on a library, which can still be in development, or wants to enforce this specific code style in the project on the compiler level.
 
-Everything starting from the 3. level seems to be overkill, especially in regard to the first argument of the function. And what if we want to prohibit only a specific pattern in regard to the usage of positional form? More about that in the next part.
+Everything starting from the 3. level seems to be overkill, especially regarding the function's first argument. Moreover, what if we want to prohibit only a specific pattern of usage of positional form? More about that in the next part.
 
 #### Different modes of operation
 
-Maybe we want to not only introduce one specific keyword to enforce named form for something, but, perhaps, something more, especially since we have several various reasons to use them and simple enforcement on different levels have its disadvantages. The possible proposed modes/enforcement types are following:
+Maybe we want to use not only one specific keyword to enforce the named form for something but perhaps something more, especially since we have several reasons to use them, and simple enforcement on different levels has disadvantages. The possible proposed modes/enforcement types are the following:
 
-1. Named-only: the regular one, enforces the entitiy marked to have all parameters as requiring named argument form. Can be used for functions where all arguments can easily be mixed up, such as functions with `Boolean` arguments, math functions, or many others discussed earlier
-2. Positional-only: the inverse of the previous one, enforces a parameter to be used in the positional form only. Can be used for methods with overloads in case the parameter name was changed in the overload or for functions where positional form is highly unexpected (such as `equals`, operators, infix functions, etc)
-3. Mixed: simple to describe: some parameters can be used in positional form, while for some we want to enforce named form. Examples of such can be seen in functions like `minOf(a, b, comparator, selector)` where `a` and `b` are positional, and `comparator` and `selector` are named. Sounds good, but how to implement it from the design point? Mark the function as "named only" and the first parameters as "unnamed"?
-4. No-trailing-lambda: specific mode which prohibits only trailing lambda for a function, class or more. Targets that one described issue specifically. It maybe useful to apply it for all class or library instead of enforcing each last functional parameter to be named.
+1. Named-only: the regular one enforces the entity marked to have all parameters requiring the named argument form. It can be used for functions where all arguments can easily be mixed up, such as functions with `Boolean` arguments, math functions, or many others discussed earlier
+2. Positional-only: the inverse of the previous one enforces a parameter to be used in the positional form only. It can be used for methods with overloads in case the parameter name was changed in the overload or for functions where the positional form is highly unexpected (such as `equals`, operators or infix functions)
+3. Mixed: simple to describe: we want some parameters to be used in the positional form while enforcing the named form for others. Examples can be seen in functions like `minOf(a, b, comparator, selector)` where `a` and `b` are positional, and `comparator` and `selector` are named. That sounds good, but how do we implement it from a design point of view? Mark the function as "named only" and the first parameters as "unnamed"?
+4. No-trailing-lambda: a specific mode that prohibits trailing lambdas for only a function, class, or more. Targets that one described issue specifically. It may be helpful to apply it for all classes or libraries instead of enforcing each last functional parameter to be named.
 
-Overall, proper support of these modes would require more than one kind of marks. What comes to mind is something of kind "named", "positional" and "any" to not too many marks in one call. Do we really need the third one?
+Properly supporting these modes would require more than one kind of mark. What comes to mind is something of the kind: "named", "positional", and "any". Do we need the third one?
 
 #### Remark: global paradigm shift
 
-Swift programming language, which may be referenced as the source of the initial ideas, enforces named form by default. Maybe we should change the Kotlin paradigm and enforce named argument form as a default? Obviously, with a grace period, way to use unnamed form and, perhaps, some smart way to not enforce the named form when the passed variable has the same name as the parameter it is being passed into.
+Swift programming language, which may be referenced as the source of the initial ideas, enforces named form by default. Maybe we should change the Kotlin paradigm and enforce the named argument form as a default? Obviously, with a grace period, a way to use an unnamed form and, perhaps, some smart way to not enforce the named form when the passed variable has the same name as the parameter it is being passed into.
 
 #### Remark: Synergy with Argument Labels
 
-Both features were initially discussed together, and both are present in Swift, therefore it makes sense that their joined implementation can lead to some additional benefits.
+Both features were initially discussed together and are present in Swift; therefore, it makes sense that their joined implementation can lead to additional benefits.
 
-For example, one could say that using an "empty" Argument Label can be counted as specifying this parameter as "positional-only", and providing an actual argument label --- as specifying "named-only". This approach has its own disadvantages (like two different (although related) behaviours linked to one feature and being a complete rip-off of Swift), but still worth investigating.
+For example, one could say that using an "empty" Argument Label can be counted as specifying this parameter as "positional-only" and providing an actual argument label --- as specifying "named-only". This approach has disadvantages (like two different (although related) behaviours linked to one feature and being a complete rip-off of Swift), but it is still worth investigating.
 
 #### Level of diagnostic 
 
-Instead of throwing errors/warnings on the Compiler level, one may instead propose this feature as an IDE warning and inspection. This sounds like a possible approach, but if it will work only in IDE, where parameter names are already highlighted even when one does not write them, the use of this approach seems dubious.
+Instead of throwing errors/warnings on the Compiler level, one may propose this feature as an IDE warning and inspection. This idea sounds like a possible approach, but if it will work only in IDE, where parameter names are already highlighted even when one does not write them, this approach seems dubious.
 
 #### Migration levels
 
 If a library is to introduce the usage of enforced named argument form in its functions, this will affect all the code that uses these functions. How should it affect it?
 
-1. Perhaps errors should be generated, which will break the code using such functions in positional form. This will break the usage, but could possibly increase the adoption speed of the named form. And it could uncover some possible bugs in process.
-2. Perhaps warnings should be generated, which will only report the usage of enf-marked functions or arguments in positional form. This will not break anything, but it seems possible, that many will just ignore such warnings, which effectively nullifies the purpose of the feature.
-3. Combine these two in some way. Maybe leave it on the library developer, who will be able to set a configuration flag on whether to throw error or a warning. Maybe make it suppresible error or warning via compiler flags.
+1. Perhaps errors should be generated, breaking the code using such functions in positional form. This approach will break the usage but could increase the adoption speed of the named form. Moreover, it could uncover some possible bugs in the process.
+2. Perhaps warnings should be generated, only reporting the usage of marked functions or arguments in positional form. This approach will not break anything, but it seems possible that many will just ignore such warnings, which effectively nullifies the purpose of the feature.
+3. Combine these two in some way. Maybe leave it to the library developer to set a configuration flag to determine whether to throw an error or a warning. Maybe make it a suppressible error or warning via compiler flags.
 
 #### Binary compatibility
 
-Another important topic and reason behind this feature (and argument labels) --- trying to preserve binary compatibility during the function evolution. 
+Another essential topic and reason behind this feature (and argument labels) is trying to preserve binary compatibility during function evolution. 
 
-Is it possible to achieve with the usage of positional form? How do these named calls are being compiled against library functions? How does function ABI changes when an optional parameter is introduced?
+Is it possible to achieve this using the named form? How are these named calls being compiled against library functions? How does function ABI change when an optional parameter is introduced?
 
-Another approach for it is to move the parameters that are subject to change into an "Argument Object" --- a data class holding the parameters, which can be easily constructed at the call site and deconstructed inside the function. While being a theoretical proposal, it may be further used for ABI instead of ENF and AL. More about this is in its specific document...
+Another approach is to move the parameters subject to change into an "Argument Object" --- a data class holding the parameters, which can be easily constructed at the call site and deconstructed inside the function. While being a theoretical proposal, it may be further used for ABI instead of ENF and AL. More about this is in its specific document.
 
 #### Data class destruction
 
@@ -244,13 +244,13 @@ Quote from the original issue: "The related issues is a position-based destructi
 
 ### Existing solutions
 
-Before moving to the possible implementation details of our own, we should first try to look at how these features are emulated in Kotlin, if they are, and how they are implemented in other programming languages.
+Before moving to the possible implementation details of our own, we should first try to look at how these features are emulated in Kotlin if they are, and how they are implemented in other programming languages.
 
 #### Imitations in Kotlin: Variadic arguments
 
-In fact, there is a way to enforce some arguments to be always in named form --- it is the `vararg` keyword. More specifically, every argument after a variadic one must be used in named form.
+There is a way to enforce some arguments to always be in the named form --- it is the `vararg` keyword. More specifically, every argument after a variadic one must be used in the named form.
 
-That makes a way in Kotlin to make some arguments of a function be always named by using `vararg nothings: Nothing`. Currently such variadic parameter is forbidden (there is a compilation error, which can be suppressed), and it looks weird and takes space for, in a fact, a separator.
+That makes it a way in Kotlin to make some arguments of a function to consistently be in named form by using `vararg nothings: Nothing`. Currently, such a variadic parameter is forbidden (there is a compilation error, which can be suppressed), and it looks weird and takes space for, in fact, a separator.
 
 ```kotlin
 /* requires passing all arguments by name */
@@ -267,13 +267,13 @@ f1(0, arg1 = 1, arg2 = 2)           // compiles without optional named argument
 
 The example is taken from [stackoverflow](https://stackoverflow.com/questions/37394266/how-can-i-force-calls-to-some-constructors-functions-to-use-named-arguments/37394267#37394267), where the question about the possibility of doing this was initially asked.
 
-This method was discussed in issue [KT-12846](https://youtrack.jetbrains.com/issue/KT-27282/Allow-vararg-parameters-of-type-Nothing), and deemed strange and “looks really like a hack”. The issue was closed in favour of the original issue for introduction of enforcement of named argument form in Kotlin: [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form).
+This method was discussed in issue [KT-12846](https://youtrack.jetbrains.com/issue/KT-27282/Allow-vararg-parameters-of-type-Nothing) and deemed strange and “looks really like a hack”. The issue was closed in favour of the original issue for the introduction of enforcement of named argument form in Kotlin: [KT-14934](https://youtrack.jetbrains.com/issue/KT-14934/Enforce-parameter-usage-only-in-named-form).
 
-Additionally, brief search on GitHub showed that this approach is practically not used among developers.
+A brief search on GitHub also showed that developers do not use this approach.
 
 #### Imitations in Kotlin: Annotation
 
-Many things that can be implemented as any kind of a keyword or any other modifier can probably be implemented by using Annotation, either Compile- or Run-time. Same goes with enforced named form: at some point it was proposed to imitate the feature behaviour using annotations, which [were requested](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636/2), and, sometime later, [implemented](https://github.com/chao2zhang/RequireNamedArgument).
+Many things that can be implemented as any kind of keyword or modifier can probably be implemented using either Compile- or Run-time annotation. The same goes with enforced named form: at some point it was proposed to imitate the feature behaviour using annotations, which [were requested](https://discuss.kotlinlang.org/t/add-annotation-or-other-mechanism-to-force-named-arguments-for-method/15636/2), and, sometime later, [implemented](https://github.com/chao2zhang/RequireNamedArgument).
 
 ```kotlin
 @NamedArgsOnly
@@ -286,19 +286,19 @@ buildSomeInstance(param1=false, param2=true)
 buildSomeInstance(false, true)
 ```
 
-The problem with this method is that it is an annotation, a mechanism that is (apparently) unreliable and heavily abused to modify the compiler’s behaviour. Moreover, this specific annotation is compile-time, and such approach will not work for libraries that want to require consumers to specify the argument names. Perhaps, a run-time annotation will work for this, but the part about heavily-used mechanism remains true.
+The problem with this method is that it is an annotation, a mechanism that is (apparently) unreliable and heavily abused to modify the compiler’s behaviour. Moreover, this annotation is compile-time, and this approach will not work for libraries requiring consumers to specify the argument names. Perhaps a run-time annotation will work for this, but the part about the heavily used mechanism remains true.
 
 #### Imitations in Kotlin: More inspections
 
-We have already mentioned the [inspections for Boolean literals (implemented)](https://youtrack.jetbrains.com/issue/KTIJ-1634) and the [one for more sophisticated cases (requested)](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names). Perhaps the whole feature or feature set can be implemented as a set of such inspections? This idea was already discussed in the part "Level of diagnostic", but, briefly: we already have argument names highlighting in IDE, so it would probably be not very useful to ask for argument labels only in the IDE.
+We have already mentioned the [inspections for Boolean literals (implemented)](https://youtrack.jetbrains.com/issue/KTIJ-1634) and the [one for more sophisticated cases (requested)](https://youtrack.jetbrains.com/issue/KTIJ-18880/Consider-more-sophisticated-inspection-for-same-looking-arguments-without-corresponding-parameter-names). Perhaps the whole feature or feature set can be implemented as a set of such inspections? This idea was already discussed in the part "Level of diagnostic", but we already have argument names highlighting in IDE, so it would probably not be very useful to ask for argument labels only in the IDE.
 
 ### Abount named form in other languages
 
-Currently some of the popular programming languages do not even have the regular named form for passing arguments in a function call, like Java or C++. Still there are some which do have, and among them there is at least one enforcing the usage of named form.
+Currently, several popular programming languages do not even have the regular named form for passing arguments in a function call, like Java or C++. Still, some do have, and among them, at least one enforcing the usage of named form.
 
 #### Approach in Swift
 
-Once again --- Swift enforces all arguments to be in the named form by default, and the only way to use an argument in positional form is to specify it as having an empty argument label, which will render it impossible to use this argument in named form.
+Once again --- Swift enforces all arguments to be in the named form by default, and the only way to use an argument in positional form is to specify it as having an empty argument label, which will render it impossible to use this argument in the named form.
 
 An example from the [Swift documentation](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/functions/):
 
@@ -312,94 +312,94 @@ print(greet(person: "Bill", from: "Cupertino"))
 // Prints "Hello Bill!  Glad you could visit from Cupertino."
 ```
 
-There is a long discussion on how and when to use named form (outdated by 8 years, but still why not): [on swift forums](https://forums.swift.org/t/when-to-use-argument-labels-a-new-approach/1289)
+There is a long discussion on how and when to use the named form (outdated by eight years, but still, why not): [on swift forums](https://forums.swift.org/t/when-to-use-argument-labels-a-new-approach/1289)
 
-It is important to notice, that all arguments in Swift **still have fixed positions**, and you cannot change their order, despite them being passed in named form. Perhaps due to this, or due to argument labels being nothing more that separators in this situations, they do not have to be unique, in fact.
+It is essential to notice that all arguments in Swift **still have fixed positions**, and one cannot change their order despite the arguments being passed in named form. Perhaps due to this or argument labels being nothing more than separators in this situation, they do not have to be unique.
 
-On the implementation side, all the arguments are still mapped positionally, but the presence of the argument name is checked (if the argument label for this parameter was not set to "empty".
+On the implementation side, all the arguments are still mapped positionally. However, the presence of the argument name is checked (if the argument label for this parameter was not set to "empty".
 
 #### Remark: function arguments in Kotlin
 
-Named arguments do not have to be passed in specific orders. Named and unnamed arguments can be mixed, but only when the values of all other arguments *can be deduced* from the named ones. That is not always clear. There can be only one variadic argument in a function, but it can be placed at any point of the arguments list, although all arguments after it have to be in a named form. Except for the case, when the last argument is a (lambda) function, which does not have to be named if passed as a trailing lambda
+Named arguments do not have to be passed in specific orders. Named and unnamed arguments can be mixed, but only when the values of all other arguments *can be deduced* from the named ones. That is not always clear. There can be only one variadic argument in a function, but it can be placed at any point of the arguments list, although all arguments after it have to be in a named form. Except for the case when the last argument is a (lambda) function, which does not have to be named if passed as a trailing lambda
 
 ### Specific implementation ideas
 
-Now after we moved through the existing implementation, we need to think about which can we actually use for prototype or actual implementation, in regard to their benefits and drawbacks.
+Now, after we move through the existing implementation, we need to think about which we can use for prototype or actual implementation, regarding their benefits and drawbacks.
 
 #### Runtime annotation
 
-We have already mentioned and discussed already existing annotation which allows to enforce named form for every argument in a function. The direct problem of that specific annotation was that it was compile time, meaning, that this annotation was not preserved in the compilation artifact, which renders the use of the feature for libraries imposisble.
+We have already mentioned and discussed existing annotation, which allows us to enforce the named form for every argument in a function. The direct problem of that specific annotation was that it was compiled time, meaning that it was not preserved in the compilation artifact, making using the feature for libraries impossible.
 
-One way to deal with it is just to use runtime annotation and an annotation processor, as they do work in runtime rather than in compile time, which is the idea for this approach --- analyze and rewrite this compile plugin into an annotation processor.
+One way to deal with it is just to use runtime annotation and an annotation processor, as they work in runtime rather than compile time, which is the idea for this approach --- analyze and rewrite this compile plugin into an annotation processor.
 
 However, there are several downsides to this approach. Firstly, neither compiler plugins nor annotation processors support targets other than JVM, so adding a language feature in such a way will contradict Kotlin's multiplatformness. Secondly, annotations are already heavily overused mechanisms for such purposes, sometimes resulting in the code being less readable, which contradicts the very goal of this work. 
 
-Even though, this approach still can be tried to explore this direction further.
+However, this approach can still be tried to explore this direction further.
 
 #### Syntactic sugar: variadic argument insertion
 
-Another approach is highly based on the community idea, described in the corresponding part, is to add a separator-like entity in the argument list in function declarations, which will be compared to the variadic pseudo-argument construction we have seen before.
+Another approach highly based on the community idea, described in the corresponding part, is adding a separator-like entity in the argument list in function declarations, which will be compared to the variadic pseudo-argument construction we have seen before.
 
-This way, writing something like `nowOnlyNamed` will be more clear than by writing the `vararg _: Nothing}` construction each time we want to introduce parameters with enforced named argument form, indeed enhancing code clarity. Apart from that, this approach seems relatively easy to implement, as it requires a simple transformation of one specific construction to an existing language construction.
+This way, writing something like `nowOnlyNamed` will be more apparent than writing the `vararg _: Nothing}` construction each time we want to introduce parameters with enforced named argument form, enhancing code clarity. Apart from that, this approach seems relatively easy to implement, as it requires a simple transformation of one specific construction to an existing language construction.
 
-Still, even though we have fixed the problems with obscurity of the construction, other problems described earlier still persist, such as situations with functions already containing variadic arguments, usage of prohibited construction and limitation to the "all-after-separator" approach.
+Still, even though we have fixed the problems with the obscurity of the construction, other problems described earlier persist, such as situations with functions already containing variadic arguments, usage of prohibited construction and limitation to the "all-after-separator" approach.
 
 #### New keyword(s)
 
 The more regular way to implement this feature is to add a new weak keyword to the Kotlin language, marking a function or an argument of a function as requiring a named form. Due to this keyword being weak, it will not affect parameters that already had the same name as the new keyword, like the existing weak parameter keywords: `vararg`, `noinline` and `crossinline`.
 
-From the internal side, this feature is implemented by adding a boolean field to related nodes of source trees, along with proper changes to initialize those nodes. Apart from adding such flag, we will need to add analysis during the function calls resolution, that will check that all parameters marked with this flag are passed only using named form.
+From the internal side, this feature is implemented by adding a boolean field to related nodes of source trees, along with proper changes to initialize those nodes. Apart from adding this flag, we will need to add analysis during the function calls resolution, which will check that all parameters marked with this flag are passed only using the named form.
 
-The possible disadvantage of such approach is the requirement to possibly modify many structures and places of initialization of such structures, which may happen to be a great amount of work.
+The possible disadvantage of this approach is the requirement to modify many structures and places of initialization of such structures, which may be a tremendous amount of work.
 
-The advantages of it, however, is being just a more clean way to do the initial task, and the possibility to easily extend it to function-level, constructors and other places without significant problems.
+The advantages of it, however, are that it is just a cleaner way to do the initial task and the possibility to easily extend it to function-level constructors and other places without significant problems.
 
 #### Remark: on keywords in Kotlin
 
 There is a difference between a soft keyword and a regular one. Regular or hard keywords (like `if`, `fun` or `break`) are always parsed as a keyword and cannot be used as an identifier. Meanwhile, soft keywords (like `vararg`, `catch` or `inline`) act as keywords in the context in which they are applicable; they are treated as identifiers. To be more precise, what in this work is called soft keywords can be split into soft keywords, modifier keywords and special identifiers, but we do not consider this separation in this work, even though what we are doing is, in fact, a modifier keyword. 
 
-What is important for us, is that introduction of a new soft keyword here is not going to break the existing code, even if it uses the identifier with the exact same name as the one we choose for the keyword.
+What is essential for us is that introducing a new soft keyword here will not break the existing code, even if it uses the identifier with the same name as the one we choose for the keyword.
 
 ### Possible technical details
 
-In this section different details and moments are collected, that should be noted during the implementation.
+This section collects different details and moments that should be noted during the implementation.
 
 #### Scope of usage
 
-It is pretty much clear where to put keyword if we want it to affect an argument, a function or a class. But where should it be placed if we want it to affect a subset of arguments or functions? Where should it be placed it we want it to act on the whole file or project? Perhaps keywords will not be of much use for these scopes of use
+It is clear where to put a keyword if we want it to affect an argument, a function or a class. However, where should it be placed if we want it to affect a subset of arguments or functions? Where should it be placed if we want it to act on the whole file or project? Perhaps keywords will not be of much use in these scopes.
 
 #### Separate compilation
 
-One of the significant reasons for this feature is for it to work with libraries. Libraries are usually compiled separately from the project using them, therefore we need to somehow make the feature be present in the compilation artifacts. How should it be stored? What are the possible options?
+One of the significant reasons for this feature is for it to work with libraries. Libraries are usually compiled separately from the project using them. Therefore, we must somehow make the feature present in the compilation artifacts. How should it be stored? What are the possible options?
 
-The one option that comes to mind first is to store just like any other keywords are stored in the .class file. `noinline` and `crossinline` are already being serialized somehow to .class files and/or Kotlin metadata, therefore it is possible to add our own keyword there.
+The one option that comes to mind first is to store just like any other keywords are stored in the .class file. `noinline` and `crossinline` are already being serialized somehow to .class files and/or Kotlin metadata. Therefore, it is possible to add our keyword there.
 
-Are there any other options? Is it possible to do without changing the binary format of .class files?
+Are there any other options? Is it possible to do this without changing the binary format of .class files?
 
 #### Interoperability with Java
 
-Kotlin has to support interoperability with Java, that means, Kotlin functions can be called from the Java code and vice versa.
+Kotlin has to support interoperability with Java, which means Kotlin functions can be called from the Java code and vice versa.
 
-Once again --- Java does not support named arguments form at all. How our feature should work in this situation? The three possible options stand out for possible discussion:
+Once again, Java does not support named arguments at all. How should our feature work in this situation? The three possible options stand out for possible discussion:
 1. Java should simply ignore these modifiers. They are Kotlin metadata, and we are not ones to modify how Java Virtual Machine works in any way.
-2. Such functions should not be callable in Java. Perhaps there is a way to prohibit these functions from executing in Java? But why would we do it?
-3. Make them possible to use with a warning being issued or leave the decision in form of a compilation flag for a library --- the developer will deside for themselves, whether the library should be accessible from Java.
+2. Such functions should not be callable in Java. Perhaps there is a way to prohibit these functions from executing in Java? However, why would we do it?
+3. Make them possible to use with a warning being issued or leave the decision in the form of a compilation flag for a library --- the developer will decide whether the library should be accessible from Java.
 
 Perhaps the second and the third approaches violate the interoperability. Do they?
 
 #### Not-JVM backends
 
-We have not really discussed or looked at other backends for Kotlin apart form the JVM one. Still, if the feature is implemented on the sugar level, there should not be such problem, if the language in question supports named form and variadic arguments. 
+We have not fully discussed or looked at other backends for Kotlin apart from the JVM one. Still, if the feature is implemented on the sugar level, there should not be such a problem if the language in question supports named form and variadic arguments. 
 
 #### Inheritance
 
-We need to keep in mind, how the parameter modifiers are being preserved during the interface implementation/function overrides. Will the writer have to write the keyword for each argument if they want it to keep being enforced? Can one make an argument that had enforced named form to lose this property in a descendant? What about vice versa? How would it act in the calls via supertype? 
+We need to know how the parameter modifiers are preserved during the interface implementation/function overrides. Will the writer have to write the keyword for each argument if they want it to keep being enforced? Can one make an argument that had enforced named form to lose this property in a descendant? What about vice versa? How would it act in the calls via supertype?
 
 #### Related diagnostics
 
-The end user of the compiler should be provided with meaningful error message in various new cases related to the usage of positional/named form when it is prohibited. 
+The end user of the compiler should be provided with meaningful error messages in various new cases related to using positional/named form when it is prohibited. 
 
-Apart from that, should we add another diagnostics for impossible specification of "strictly named" and "strictly positional" forms? If somebody is to put a "strictly positional" argument after a "strictly named", in some cases it would be impossible to use this function.
+Also, should we add other diagnostics for impossible specification of "forced named" and "forced positional" forms? If somebody were to put a "forced positional" argument after a "forced named" argument, it would be impossible to use this function in some cases.
 
 ## Evaluation
 
