@@ -356,7 +356,44 @@ The advantages of it, however, is being just a more clean way to do the initial 
 
 ### Possible technical details
 
-This approach raises further questions about how such feature should be implemented with respect to interoperability with Java, which does not support named argument form at all. Possible answers can range from ignoring such modifiers when the functions are being called from Java code, to throwing an error in such calls. In either way, this is not the currect scope of this work.
+In this section different details and moments are collected, that should be noted during the implementation.
+
+#### Scope of usage
+
+It is pretty much clear where to put keyword if we want it to affect an argument, a function or a class. But where should it be placed if we want it to affect a subset of arguments or functions? Where should it be placed it we want it to act on the whole file or project? Perhaps keywords will not be of much use for these scopes of use
+
+#### Separate compilation
+
+One of the significant reasons for this feature is for it to work with libraries. Libraries are usually compiled separately from the project using them, therefore we need to somehow make the feature be present in the compilation artifacts. How should it be stored? What are the possible options?
+
+The one option that comes to mind first is to store just like any other keywords are stored in the .class file. `noinline` and `crossinline` are already being serialized somehow to .class files and/or Kotlin metadata, therefore it is possible to add our own keyword there.
+
+Are there any other options? Is it possible to do without changing the binary format of .class files?
+
+#### Interoperability with Java
+
+Kotlin has to support interoperability with Java, that means, Kotlin functions can be called from the Java code and vice versa.
+
+Once again --- Java does not support named arguments form at all. How our feature should work in this situation? The three possible options stand out for possible discussion:
+1. Java should simply ignore these modifiers. They are Kotlin metadata, and we are not ones to modify how Java Virtual Machine works in any way.
+2. Such functions should not be callable in Java. Perhaps there is a way to prohibit these functions from executing in Java? But why would we do it?
+3. Make them possible to use with a warning being issued or leave the decision in form of a compilation flag for a library --- the developer will deside for themselves, whether the library should be accessible from Java.
+
+Perhaps the second and the third approaches violate the interoperability. Do they?
+
+#### Not-JVM backends
+
+We have not really discussed or looked at other backends for Kotlin apart form the JVM one. Still, if the feature is implemented on the sugar level, there should not be such problem, if the language in question supports named form and variadic arguments. 
+
+#### Inheritance
+
+We need to keep in mind, how the parameter modifiers are being preserved during the interface implementation/function overrides. Will the writer have to write the keyword for each argument if they want it to keep being enforced? Can one make an argument that had enforced named form to lose this property in a descendant? What about vice versa? How would it act in the calls via supertype? 
+
+#### Related diagnostics
+
+The end user of the compiler should be provided with meaningful error message in various new cases related to the usage of positional/named form when it is prohibited. 
+
+Apart from that, should we add another diagnostics for impossible specification of "strictly named" and "strictly positional" forms? If somebody is to put a "strictly positional" argument after a "strictly named", in some cases it would be impossible to use this function.
 
 ## Evaluation
 
@@ -369,3 +406,7 @@ This approach raises further questions about how such feature should be implemen
 ### Further work
 
 ### Final results
+
+## Additional remarks
+
+### On variadic arguments in Swift and Kotlin
