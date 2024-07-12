@@ -521,109 +521,109 @@ What about using labels instead of parameter names inside the function body?
 
 ## Evaluation
 
-To test some the ideas described, collect additional findings and have a starting point for possible further implementations, the prototypes for the argument labels feature were developed.
+The prototypes for the argument labels feature were developed to test some ideas described, collect additional findings, and provide a starting point for possible further implementations.
 
-A prototype here is a version of a Kotlin compiler, with modifications made to support the new feature. The feature can possibly be covered by tests and different benchmarks in the prototype, but still have poor code quality and/or questionable design choices. Apart from that, it may not work or be untested for some specific cases, which are mostly noted in the corresponding part.
+A prototype here is a version of a Kotlin compiler with modifications made to support the new feature. The feature can be covered by tests and different benchmarks in the prototype, but it can still have poor code quality and/or questionable design choices. It may not work or be untested for some specific cases, which are primarily noted in the corresponding part.
 
 ### Prototypes implemented
 
-Due to initial lack of experience working with Kotlin compiler source code, initially the syntactic sugar prototype was implemented. However, some time after, a more "proper" prototype, with a new field added, was created separately. Here we will discuss the implementation details of both of them.
+Due to an initial lack of experience working with Kotlin compiler source code, the syntactic sugar prototype was the first to be implemented. However, sometime later, a more "proper" prototype, with a new field added, was created separately. Here, we will discuss the implementation details for both of them.
 
 #### Via jumper function (sugar)
 
 For the parser part, the needed change was to modify the `parseFunctionParameterRest function, which, as one can see from the name, parses the function parameter after parsing its modifiers. The change needed was to add the case of two identifiers instead of one, and if so, parse them. After this, a parameter with an argument label will be represented by having two consecutive identifiers instead of one. 
 
-We decided to use the Swift syntax for argument labels for now, but it is possible to change it to use other variants proposed in the corresponding part of this document with changes only in parser and the translation into FIR part.
+We decided to use the Swift syntax for argument labels for now. However, it is possible to change it to use other variants proposed in the corresponding part of this document with changes only in the parser and the translation into the FIR part.
 
-For the desugaring we added (an unefficient) function to check the presence of argument labels in a function, and then added separate parameter to the transformation function, which controlls, whether to generate a jumper body and use argument labels, or to proceed with regular body, but change the name and use parameter names.
+For the desugaring, we added (an inefficient) function to check the presence of argument labels in a function. Then, we added a separate parameter to the transformation function, which controls whether to generate a jumper body and use argument labels or to proceed with the regular body but change the name and use parameter names.
 
-After that no additional changes were made, as that was enough for basic tests to work.
+After that, no additional changes were made, as that was enough for basic tests to work.
 
 #### Via proper field
 
-For the role of the new identifier, we settled on the argument label, as it seems as the one requiring less changes to the already existing code and a faster path to a seemingly working prototype.
+For the role of the new identifier, we settled on the argument label, as it seems to require fewer changes to the already existing code and a faster path to a seemingly working prototype.
 
-The parser part was changed the same way as in the "sugar" implementation.
+The parser part was changed similarly to the "sugar" implementation.
 
-After the work in parser, a new field was added to the FIR nodes via the generator and configurator of them. This field was then initialized by the mew identifier during the transformation of ValueParameter lightTree/PSI node to FIR, or by the parameter name in case the valueParameter lacked an argument label.
+After the work in the parser, a new field was added to the FIR nodes via their generator and configurator. The new identifier then initialized this field during the transformation of ValueParameter lightTree/PSI node to FIR or by the parameter name in case the valueParameter lacked an argument label.
 
-After that, the process of argument to parameter mapping in the resolution stage (`FirArgumentsToParameterMapper.kt`) was modified. The internal mapping of names to the function parameters was changed to map argument labels instead, and a check was added to the situation, when someone is using the parameter name instead of the argument label for an argument (via an additional mapping).
+After that, the argument to parameter mapping process in the resolution stage (`FirArgumentsToParameterMapper.kt`) was modified. The internal mapping of names to the function parameters was changed to map argument labels instead, and a check was added to the situation when someone is using the parameter name instead of the argument label for an argument (via an additional mapping).
 
-Lastly, several diagnostics were added, regarding the improper usage of argument labels or some of the argument labels being not unique.
+Lastly, several diagnostics were added regarding the improper usage of argument labels or some of the argument labels being not unique.
 
 ### Implementation results
 
-The two described prototypes can be found in the following branches of the Github repository:
+The two described prototypes can be found in the following branches of the GitHub repository:
 
 1. [Prototype using jumper function (sugar)](https://github.com/MarkTheHopeful/kotlin/tree/argument-label-proto)
 2. [Prorotype using additional field in structures](https://github.com/MarkTheHopeful/kotlin/tree/argument-label-proto-2)
 
-Both can be used in the following way:
+Both can be used in the following ways:
 
 1. Checkout the needed branch
 2. Run `./gradlew dist`
 3. Use the compiler from `./dist/kotlinc/bin/kotlinc "filename"` to compile the file using the prototype
 
-Now we should move to the evaluation of the prototypes.
+Now, we should move to the evaluation of the prototypes.
 
 #### Tests and behaviour
 
-For the first prototype, the main accent was to make it work at least on simple examples, and it, in fact, did work on them. Top-level functions with argument labels worked correctly, with an exception for functions with variadic arguments, as the needed treatment was not added. Interaction with parameter modifiers (`noinline, crossinline`) was fine, no additional problems were noted. Some basic tests were introduced to the test sets (`fir/analysis-tests/testData/resolve/argumentLabel`). The already present tests without the usage of argument labels were not affected. Additional attention to this prototype was not given. 
+For the first prototype, the main accent was to make it work at least on simple examples, and it did work on them. Top-level functions with argument labels worked correctly, except for functions with variadic arguments, as the needed treatment was not added. Interaction with parameter modifiers (`noinline, crossinline`) was fine, and no additional problems were noted. Some basic tests were introduced to the test sets (`fir/analysis-tests/testData/resolve/argumentLabel`). The already present tests without the usage of argument labels were not affected. Additional attention was not given to this prototype. 
 
-For the second prototype, more in-depth testing was concluded, although the commited test set wasn't changed much yet. (Most of the files are still present as local):
-1. Regular behaviour on top level functions, with some arguments having parameter modifiers has been checked, and everything (including variadic arguments) worked correctly.
+More in-depth testing was concluded for the second prototype, although the committed test set has not changed much yet. (Most of the files are still present as local):
+1. Regular behaviour on top-level functions has been checked, with some arguments having parameter modifiers, and everything (including variadic arguments) worked correctly.
 2. Regular behaviour on class methods was checked, with methods having different visibility and various parameter modifiers. It also worked correctly and consistently.
-3. The behaviour was also checked for contructors and operators (such as `invoke`), where the proper and expected results were achieved. The parameter names served as members (fields) in case of contrustors.
-4. For class methods, situations were a method of a descender overrides one in an ancestor. The override worked correctly (in the same way as without argument labels), although the warning was not present if different argument labels were used. No problems were encountered when different parameter names were used, as the mapping is now being done by argument labels.
-5. For non-unique argument labels (two or more parameters with the same argument label), an addition to already existing diagnostic on function parameter names was made (simply check the argument labels separately). The diagnostic worked and produced correct error message.
-6. Additional attention was given to trailing lambdas and their usage in named form, especially in argument labels. It worked fine, just as regular arguments.
-7. Lastly, it was attempted to try and compile the function and its call separately, to check, whether it will (somehow) work. No miracles, it failed, as currently argument labels are not serialized and anyhow put even into the IR.
+3. The behaviour was also checked for constructors and operators (such as `invoke`), where the proper and expected results were achieved. The parameter names served as members (fields) in case of contrustors.
+4. For class methods, situations where a method of a descender overrides one in an ancestor. The override worked correctly (in the same way as without argument labels), although the warning was not present if different argument labels were used. No problems were encountered when different parameter names were used, as argument labels are now doing the mapping.
+5. For non-unique argument labels (two or more parameters with the same argument label), an addition to already existing diagnostic on function parameter names was made (simply check the argument labels separately). The diagnostic worked and produced the correct error message.
+6. Additional attention was given to trailing lambdas and their usage in named form, especially in argument labels. It worked fine, just like regular arguments.
+7. Lastly, it was attempted to try and compile the function and its call separately to check whether it would (somehow) work. No miracles, it failed, as currently, argument labels are neither serialized nor put into the IR tree.
 
 #### Benchmarks
 
-Up to this moment, only the first prototype was properly benchmarked, and the result was a significant (10-25%) increase in compilation time on tests with an increased amount of functions with many arguments with argument labels.
+Up to this moment, only the first prototype was properly benchmarked, and the result was a significant (10-25%) increase in compilation time on tests with an increased number of functions with many arguments having argument labels.
 
-The benchmarks included tests with many (hundreds to thousands) functions with small or large (hundreds) amount of arguments and many function calls. Every test has a version without argument labels and with argument labels.
+The benchmarks included tests with many (hundreds to thousands) functions with small or large (hundreds) amounts of arguments and many function calls. Every test has a version without argument labels and one with argument labels.
 
-The prototype shown no significant decrease in performance on tests without argument labels.
+The prototype showed no significant decrease in performance on tests without argument labels.
 
 #### Existing problems
 
-There are several problems with the prototypes made, both from the technical and from the design sides. We have mostly described them in the previous parts, but here they all are gathered in one place.
+There are several problems with the prototypes made, both from the technical and design sides. We have mainly described them in the previous parts, but they are additionally gathered here:
 
-1. The first prototype does not work, if a function under transformation contains variadic arguments.
+1. The first prototype does not work if a function under transformation contains variadic arguments.
 2. The first prototype is currently not designed to support constructors and methods in classes
 3. The second prototype does not support separate compilation of a function declaration and its calls.
-4. The error messages in the second prototype are not precisely correct with locations in some cases. 
+4. The error messages in the second prototype sometimes show slightly incorrect locations. 
 
 ### Further work
 
 Even though this document is a complete report on the research of argument labels, there are still directions to move before the final decision and, if positive, implementation of the feature into the Kotlin programming language. 
 
 The three main directions can be summarized in the following list:
-1. Make further research on specific design choices, ranging from specific syntax used for argument labels to the ways to store them in compilation artifacts. The most straightforward action in this direction will be to conclude a poll on the syntax choice. Apart from that, one can dive deeply into specifics of implementation of argument labels in Swift or Gleam, as the first is being compiled into LLVM, and the second --- to JavaScript, which can be useful for Kotlin/Native and Kotlin/JS respectively
-2. Add further improvements to the second prototype. Separate compilation problem can be resolved, small bugs with warnings not showing on can be fixed, additional tests and benchmarks can be done. One can also try writing it with making the new identifier play the role of parameter name instead of argument label.
-3. Develop the first prototype to the level of the second one. Despite it being created just to make something work and wasn't tested properly, maybe the idea has more behind it that it seems, if polished a little bit more and optimized. The jumper function can be inlined, the check can be replaced with a flag somewhere during the compilation and so on. And it does not require any further meddling with IR and compilation artifacts.
+1. Make further research on specific design choices, ranging from the specific syntax used for argument labels to the ways to store them in compilation artifacts. The most straightforward action in this direction will be to conclude a poll on the syntax choice. Apart from that, one can dive deeply into specifics of the implementation of argument labels in Swift or Gleam, as the first is being compiled into LLVM, and the second --- to JavaScript, which can be helpful for Kotlin/Native and Kotlin/JS respectively
+2. Add further improvements to the second prototype. Separate compilation problem can be resolved, minor bugs with warnings not showing can be fixed, and additional tests and benchmarks can be done. One can also try writing it by making the new identifier play the role of a parameter name instead of an argument label.
+3. Develop the first prototype to the level of the second one. Despite it being created just to make something work and not being tested properly, maybe the idea has more behind it than it seems if polished more and optimized. The jumper function can be inlined, and the check can be replaced with a flag somewhere during the compilation. Furthermore, it does not require further meddling with IR and compilation artifacts.
 
 ## Final results
 
-During the work on this issue, many insights and information were gathered from the issues, discussions and other documents, as well as some additional research was concluded, including existing implementations in other languages. Different possible use-cases, benefits and drawbacks were discussed, possible ways of implementations were analyzed, different peculiarities were discovered and recorded. Finally, two prototypes were implemented as to prove the concept and allowing for further experiments and research regarding the feature.
+During the work on this issue, many insights and information were gathered from the issues, discussions and other documents, and some additional research was concluded, including existing implementations in other languages. Different possible use cases, benefits and drawbacks were discussed, possible ways of implementation were analyzed, and different peculiarities were discovered and recorded. Finally, two prototypes were implemented to prove the concept and allow for further experiments and research regarding the feature.
 
 ## Additional remarks
 
-Some remarks are not directly related to any of the parts in this document, but still are related to argument labels. Those are described in this part.
+Some remarks are not directly related to any of this document's parts but are still related to argument labels. Those are described in this part.
 
 ### On Swift regarding the argument labels
 
-One may notice, that in Swift texts, for example in the documentation, the functions are being referenced not just by their names, but by their parameter names: "Because the function returns a String value, greet(person:) can be wrapped in a call to the print(\_:separator:terminator:) function"
+One may notice that in Swift texts, for example, in the documentation, the functions are being referenced not just by their names but by their parameter names: "Because the function returns a String value, greet(person:) can be wrapped in a call to the print(\_:separator:terminator:) function".
 
-Considering the fact that overloads by argument labels are possible in Swift, and that for most cases you have to specify the argument labels in a function call, it makes sense to say, that argument labels are the actual part of the function name (of the function _signature_), just being split in multiple words, separated by the values for arguments. 
+Because overloads by argument labels are possible in Swift, and because, in most cases, one has to specify the argument labels in a function call, it makes sense to say that argument labels are the actual part of the function name (of the function _signature_), just being split in multiple words, separated by the values for arguments. 
 
-It can actually stem from the same behaviour for methods in the Objective-C language, with each argument starting with the second is recommended to have a "joining Argument".
+It can stem from the same behaviour for methods in the Objective-C language, with each argument starting with the second recommended to have a "joining Argument".
 
 ### On aliases for functions and arguments
 
-Maybe at some point you would like to rename all arguments of a function, but just for one file, to do something like the following:
+Maybe at some point, one would like to rename all arguments of a function, but just for one file, to do something like the following:
 
 ```kotlin
 fun f(a1: Int, a2: Int, a3: Int) {} //...
