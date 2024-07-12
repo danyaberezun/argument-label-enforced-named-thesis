@@ -354,6 +354,12 @@ The possible disadvantage of such approach is the requirement to possibly modify
 
 The advantages of it, however, is being just a more clean way to do the initial task, and the possibility to easily extend it to function-level, constructors and other places without significant problems.
 
+#### Remark: on keywords in Kotlin
+
+There is a difference between a soft keyword and a regular one. Regular or hard keywords (like `if`, `fun` or `break`) are always parsed as a keyword and cannot be used as an identifier. Meanwhile, soft keywords (like `vararg`, `catch` or `inline`) act as keywords in the context in which they are applicable; they are treated as identifiers. To be more precise, what in this work is called soft keywords can be split into soft keywords, modifier keywords and special identifiers, but we do not consider this separation in this work, even though what we are doing is, in fact, a modifier keyword. 
+
+What is important for us, is that introduction of a new soft keyword here is not going to break the existing code, even if it uses the identifier with the exact same name as the one we choose for the keyword.
+
 ### Possible technical details
 
 In this section different details and moments are collected, that should be noted during the implementation.
@@ -397,9 +403,44 @@ Apart from that, should we add another diagnostics for impossible specification 
 
 ## Evaluation
 
+To test some the ideas described, collect additional findings and have a starting point for possible further implementations, the prototype for the enforced named arguments form feature was developed.
+
+A prototype here is a version of a Kotlin compiler, with modifications made to support the new feature. The feature can possibly be covered by tests and different benchmarks in the prototype, but still have poor code quality and/or questionable design choices. Apart from that, it may not work or be untested for some specific cases, which are mostly noted in the corresponding part.
+
 ### Prototypes implemented
 
+It was decided, that annotations is not a scope of our work for that moment, and the idea with inserting variadic arguments seems to be too hacky to implement, therefore we decided to go on with the prototype with a new keyword. For now we decided to add only a keyword to enforce the named form of arguments, applicable to arguments, but this behaviour can easily be extended. Here we will provide the details for the implementation.
+
+#### Via new keyword
+
+As we decided to introduce a new soft keyword, the work affected parsing, then the FIR node for value parameters, and then --- the process of function call resolution, namely the mapping of call arguments to function parameters. 
+
+For the parsing stage, we needed to add a new soft keyword and make it applicable to function parameters, making it a modifier keyword. The keyword was integrated into the parser smoothly, as there already were keywords that act as parameter modifiers, such as `vararg` and `noinline`. Therefore, this part of the task was to add our new keyword, `enf`, to the others. 
+
+On the listing here one can see how the introduced keyword looks in use:
+
+```kotlin
+fun callMe(regular: Int, enf other: Int) {}
+
+callMe(30, 566) // Compilation error
+callMe(30, other=566) // Compiles
+```
+
+After the parser modification, the next step was to add the corresponding boolean field indicating the enforcement, `isENF`, to the class for FIR node responsible for storing a function parameter, namely `FirValueParameter`. 
+
+With the modifier being parsed and its presence indicated in the FIR node, the remaining task was to add the logic for it ~--- if an argument is being passed to a parameter with this flag, a diagnostic, that means a proper message with the place and the reason for the error, must be generated, which results in a compilation error. The file responsible for related logic is `FirArgumentsToParameterMapper.kt`, so the corresponding check was implemented there. 
+
+After it, we only needed to add the diagnostic to produce there in case the named form is violated.
+
+#### Remark: on the additional modification done later
+
+One can notice, that this implementation does not mention IR or serialization in any way. The initial implementation does not affected them, and, therefore, was not propagated into IR or .class, resulting in the modifier being lost after the compilation is done, which rendered the feature useless for separate compilation.
+
+However, additional work was done to introduce the related field into IR tree node, with the serialization added likewise to the existing parameter modifiers (`noinline` for example). Even though large amount of files needed to be changed to reflect the update (75!), in the end the serialization and deserialization were working fine.
+
 ### Implementation results
+
+ This prototype can also be found in its branch in the GitHub repository.\footnote{GitHub: \url{https://github.com/MarkTheHopeful/kotlin/tree/enforced-named-proto}} 
 
 ### Existing problems
 
