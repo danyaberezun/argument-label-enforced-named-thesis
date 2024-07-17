@@ -98,7 +98,7 @@ repo.startRequest(
 fun f (int a, int b) { ... }
 f (a = 0, b = 0);
 ->
-fun f (int [a] c, int [b] d, int e = 0, int g = 0) { ... }
+fun f (int [a,qw,we,r,t,ert,rey,r] c, int [b] d, int e = 0, int g = 0) { ... }
 f (a = 0, b = 0, e = 1, g = 1);
 
 
@@ -159,7 +159,7 @@ interface WidgetVisitor<R, D> {
 }
 
 class WidgetVisitorImpl(val context: Context) : WidgetVisitor<Unit, Context> {
-    override fun visit(widget: Widget, data context: Context) {  // <-- label is still data
+    override fun visit(widget: Widget, [data] context: Context) {  // <-- label is still data
         ...
     }
 }
