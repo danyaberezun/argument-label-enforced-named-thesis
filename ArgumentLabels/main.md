@@ -41,8 +41,8 @@ Adding a feature to a programming language, especially a big one, requires much 
 
 Two common reasons for this feature and the Enforcing of Named Argument Form are already described in the introduction document, even though we still can briefly mention them here:
 
-1. The introduction of argument labels can make the function calls look like sentences of natural language, which makes the code more self-documenting
-2. Changing APIs and libraries under development can benefit from argument labels, as with them, one may be able to change the internal name of an argument without the need to change anything in the call sites.
+1. The introduction of argument labels can make the function calls look like sentences of natural language, which makes the ***code more self-documenting***
+2. ***Changing APIs*** and libraries under development can benefit from argument labels, as with them, one may be able to change the internal name of an argument without the need to change anything in the call sites.
 
 More about these reasons can be read in the introduction document, while more specific reasons are described in the following parts.
 
@@ -93,6 +93,24 @@ repo.startRequest(
         **scheduler = Schedulers.computation()** /* what is this scheduler used for? */
 )
 ```
+
+```kotlin
+fun f (int a, int b) { ... }
+f (a = 0, b = 0);
+->
+fun f (int [a] c, int [b] d, int e = 0, int g = 0) { ... }
+f (a = 0, b = 0, e = 1, g = 1);
+
+
+@old a->c, b->d
+fun f (int c, int d, int e = 0, int g = 0) { ... }
+
+import ....
+
+@alias f (c,d,e,g) -> abra (q,w,e,r)
+```
+
+
 
 It can be seen that in this example, if we choose to have the parameter named "observeOn", its meaning will be unclear at the point it is being used, but if we choose the name "scheduler", then the purpose of the parameter is being unclear for the one using the function.
 
